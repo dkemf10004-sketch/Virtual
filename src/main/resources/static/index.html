@@ -1,0 +1,157 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOVA Entertainment</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header">
+    <a class="brand" href="#hero" aria-label="NOVA Entertainment 홈">NOVA Entertainment</a>
+    <nav class="nav-menu" aria-label="주요 메뉴">
+        <a href="#artists">Artists</a>
+        <a href="#audition">Audition</a>
+        <a href="#news">News</a>
+        <a href="#contact">Contact</a>
+    </nav>
+</header>
+
+<main>
+    <section id="hero" class="hero-section">
+        <div class="hero-copy">
+            <p class="eyebrow">AI Powered Fan Experience</p>
+            <h1>Create the Next Stage</h1>
+            <p class="hero-description">AI와 팬 경험이 만나는 새로운 엔터테인먼트 플랫폼</p>
+            <div class="hero-actions">
+                <a class="primary-button" href="#audition">Audition Now</a>
+                <a class="secondary-button" href="#artists">View Artists</a>
+            </div>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+            <div class="orbit orbit-one"></div>
+            <div class="orbit orbit-two"></div>
+            <div class="stage-card">
+                <span class="stage-light"></span>
+                <span class="stage-title">NOVA LIVE</span>
+                <span class="stage-subtitle">Virtual Stage System</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="artists" class="content-section">
+        <div class="section-heading">
+            <p class="eyebrow">Artists</p>
+            <h2>NOVA Roster</h2>
+            <p>가상의 아티스트와 AI 팬 경험을 결합한 차세대 라인업입니다.</p>
+        </div>
+        <div class="artist-grid">
+            <article class="artist-card">
+                <div class="artist-avatar avatar-luna">LN</div>
+                <h3>LUNA RAY</h3>
+                <p>일렉트로 팝과 몽환적인 퍼포먼스를 결합한 솔로 아티스트.</p>
+            </article>
+            <article class="artist-card">
+                <div class="artist-avatar avatar-zenith">ZX</div>
+                <h3>ZENITH X</h3>
+                <p>강렬한 댄스 트랙과 인터랙티브 무대를 선보이는 5인조 팀.</p>
+            </article>
+            <article class="artist-card">
+                <div class="artist-avatar avatar-mira">MR</div>
+                <h3>MIRA</h3>
+                <p>팬과 실시간으로 호흡하는 버추얼 싱어송라이터 프로젝트.</p>
+            </article>
+        </div>
+    </section>
+
+    <section id="audition" class="audition-section">
+        <div>
+            <p class="eyebrow">Audition</p>
+            <h2>새로운 무대를 함께 만들 사람을 찾습니다</h2>
+            <p>NOVA Entertainment는 음악, 퍼포먼스, AI 콘텐츠에 도전하는 크리에이터를 기다립니다.</p>
+        </div>
+        <a class="primary-button" href="#contact">지원 문의</a>
+    </section>
+
+    <section id="news" class="content-section">
+        <div class="section-heading">
+            <p class="eyebrow">News</p>
+            <h2>NOVA Updates</h2>
+            <p>새로운 프로젝트와 팬 경험 실험 소식을 확인하세요.</p>
+        </div>
+        <div class="news-grid">
+            <article class="news-card">
+                <span class="news-date">2026.06.05</span>
+                <h3>NOVA AI Fan Lab 공개</h3>
+                <p>팬 대화 경험을 연구하는 신규 실험 공간을 준비 중입니다.</p>
+            </article>
+            <article class="news-card">
+                <span class="news-date">2026.06.12</span>
+                <h3>Virtual Stage Beta 안내</h3>
+                <p>온라인 쇼케이스와 실시간 채팅 반응을 결합한 베타 무대를 선보입니다.</p>
+            </article>
+            <article class="news-card">
+                <span class="news-date">2026.06.20</span>
+                <h3>글로벌 오디션 사전 등록</h3>
+                <p>보컬, 댄스, 크리에이티브 테크 분야 지원자를 모집합니다.</p>
+            </article>
+        </div>
+    </section>
+</main>
+
+<footer id="contact" class="site-footer">
+    <div>
+        <strong>NOVA Entertainment</strong>
+        <p>Seoul Digital Studio, contact@nova.example</p>
+    </div>
+    <p>© 2026 NOVA Entertainment. Fictional company demo page.</p>
+</footer>
+
+<section class="chatbot-widget" aria-label="MOMO AI 챗봇">
+    <div id="chatbotPanel" class="chatbot-panel" aria-hidden="true">
+        <header class="chatbot-header">
+            <div>
+                <strong>MOMO AI</strong>
+                <span>방문자 안내 어시스턴트</span>
+            </div>
+            <button id="closeChatbot" class="icon-button" type="button" aria-label="챗봇 닫기">×</button>
+        </header>
+
+        <div class="bot-profile">
+            <div class="momo-character-stage" aria-hidden="true">
+                <div class="live2d-stage" id="live2dStage">
+                    <canvas id="live2dCanvas"></canvas>
+                </div>
+                <img id="momoPngFallback" src="/assets/characters/mao.png" alt="MOMO AI" class="momo-character">
+            </div>
+            <p id="speechBubble" class="bot-bubble">안녕하세요! NOVA Entertainment의 AI 어시스턴트 MOMO예요. 무엇을 도와드릴까요?</p>
+        </div>
+
+        <div id="live2dAssetCheck" class="live2d-asset-check" aria-live="polite">
+            Live2D Assets: checking...
+        </div>
+        <div id="live2dRenderStatus" class="live2d-asset-check live2d-render-status" aria-live="polite">
+            Live2D Render: waiting...
+        </div>
+
+        <div id="chatLog" class="chat-log" aria-live="polite"></div>
+
+        <form id="chatForm" class="chat-form">
+            <label class="sr-only" for="messageInput">메시지 입력</label>
+            <input id="messageInput" type="text" placeholder="MOMO에게 물어보기" autocomplete="off">
+            <button id="sendButton" type="submit">전송</button>
+        </form>
+    </div>
+
+    <button id="chatbotToggle" class="chatbot-toggle chatbot-button" type="button" aria-label="MOMO AI 챗봇 열기" aria-expanded="false">
+        <img src="/assets/characters/mao.png" alt="" class="momo-button-avatar" aria-hidden="true">
+        <span class="toggle-label">MOMO</span>
+    </button>
+</section>
+
+<script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.2/dist/browser/pixi.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/index.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
