@@ -5,11 +5,16 @@ const chatForm = document.getElementById("chatForm");
 const messageInput = document.getElementById("messageInput");
 const sendButton = document.getElementById("sendButton");
 const chatLog = document.getElementById("chatLog");
-const botAvatar = document.getElementById("botAvatar");
+const botAvatar = document.getElementById("momoPngFallback");
 const speechBubble = document.getElementById("speechBubble");
 const live2dAssetCheck = document.getElementById("live2dAssetCheck");
+const live2dRenderStatus = document.getElementById("live2dRenderStatus");
+const live2dStage = document.getElementById("live2dStage");
+const live2dCanvas = document.getElementById("live2dCanvas");
 
 const messages = [];
+let live2dReady = false;
+let live2dApp = null;
 const live2dAssetPaths = [
     "/model_dict.json",
     "/live2d-models/mao_pro/runtime/mao_pro.model3.json",
@@ -42,8 +47,16 @@ function appendMessage(role, content) {
 function setWaiting(isWaiting) {
     sendButton.disabled = isWaiting;
     sendButton.textContent = isWaiting ? "생각 중..." : "전송";
-    botAvatar.classList.toggle("thinking", isWaiting);
-    botAvatar.classList.remove("talking");
+
+    if (botAvatar) {
+        botAvatar.classList.toggle("thinking", isWaiting);
+        botAvatar.classList.remove("talking");
+    }
+
+    if (live2dStage) {
+        live2dStage.classList.toggle("thinking", isWaiting && live2dReady);
+        live2dStage.classList.remove("talking");
+    }
 }
 
 async function checkLive2dAssets() {
@@ -88,6 +101,95 @@ async function checkLive2dAssets() {
     live2dAssetCheck.classList.add("error");
     live2dAssetCheck.textContent = `Live2D Assets: Missing ${failedPaths}`;
     console.warn("Live2D asset check failed", failedAssets);
+}
+
+function setLive2DRenderStatus(message, statusClass) {
+    if (!live2dRenderStatus) {
+        return;
+    }
+
+    live2dRenderStatus.classList.remove("ok", "error");
+
+    if (statusClass) {
+        live2dRenderStatus.classList.add(statusClass);
+    }
+
+    live2dRenderStatus.textContent = message;
+}
+
+function keepPngFallback(reason) {
+    live2dReady = false;
+
+    if (live2dStage) {
+        live2dStage.classList.remove("ready", "thinking", "talking");
+    }
+
+    if (botAvatar) {
+        botAvatar.classList.remove("hidden");
+    }
+
+    if (reason) {
+        console.error("Live2D render initialization skipped", reason);
+    }
+}
+
+async function initLive2D() {
+    const modelPath = "/live2d-models/mao_pro/runtime/mao_pro.model3.json";
+
+    try {
+        setLive2DRenderStatus("Live2D Render: loading...");
+
+        if (!live2dStage || !live2dCanvas) {
+            setLive2DRenderStatus("Live2D Render: Failed - canvas missing", "error");
+            keepPngFallback("canvas element not found");
+            return;
+        }
+
+        const pixi = window.PIXI;
+        if (!pixi) {
+            setLive2DRenderStatus("Live2D Render: Failed - PIXI missing", "error");
+            keepPngFallback("window.PIXI is not defined");
+            return;
+        }
+
+        if (!pixi.live2d || !pixi.live2d.Live2DModel) {
+            setLive2DRenderStatus("Live2D Render: Failed - Live2DModel missing", "error");
+            keepPngFallback("PIXI.live2d.Live2DModel is not defined");
+            return;
+        }
+
+        const width = live2dStage.clientWidth || 142;
+        const height = live2dStage.clientHeight || 180;
+
+        live2dApp = new pixi.Application({
+            view: live2dCanvas,
+            width,
+            height,
+            transparent: true,
+            backgroundAlpha: 0,
+            antialias: true,
+            autoStart: true
+        });
+
+        const model = await pixi.live2d.Live2DModel.from(modelPath);
+        model.scale.set(0.16);
+        model.x = Math.max((width - model.width) / 2, -40);
+        model.y = height - model.height + 16;
+
+        live2dApp.stage.addChild(model);
+        live2dReady = true;
+        live2dStage.classList.add("ready");
+
+        if (botAvatar) {
+            botAvatar.classList.add("hidden");
+        }
+
+        setLive2DRenderStatus("Live2D Render: OK", "ok");
+    } catch (error) {
+        setLive2DRenderStatus("Live2D Render: Failed", "error");
+        keepPngFallback();
+        console.error("Live2D render failed", error);
+    }
 }
 
 chatbotToggle.addEventListener("click", () => {
@@ -142,4 +244,7 @@ chatForm.addEventListener("submit", async (event) => {
     }
 });
 
-document.addEventListener("DOMContentLoaded", checkLive2dAssets);
+document.addEventListener("DOMContentLoaded", () => {
+    checkLive2dAssets();
+    initLive2D();
+});
