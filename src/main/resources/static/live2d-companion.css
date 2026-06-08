@@ -1,0 +1,212 @@
+.summon-live2d-button {
+    display: none;
+    position: fixed;
+    right: 24px;
+    bottom: 124px;
+    z-index: 80;
+    min-width: 112px;
+    padding: 12px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 999px;
+    color: #ffffff;
+    background: rgba(19, 24, 44, 0.88);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+    font: 800 0.9rem/1 "Segoe UI", "Malgun Gothic", sans-serif;
+    cursor: pointer;
+}
+
+.summon-live2d-button:hover {
+    background: rgba(31, 39, 70, 0.94);
+}
+
+.live2d-companion-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    visibility: hidden;
+    opacity: 0;
+    background: transparent;
+    pointer-events: none;
+    transition: opacity 180ms ease, visibility 180ms ease;
+}
+
+.live2d-companion-layer.open {
+    visibility: visible;
+    opacity: 1;
+}
+
+.live2d-companion {
+    position: absolute;
+    right: 4vw;
+    bottom: 0;
+    width: min(620px, 92vw);
+    height: 88vh;
+    overflow: visible;
+    pointer-events: none;
+}
+
+#live2dCompanionCanvas,
+.live2d-companion canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.live2d-companion-status {
+    position: absolute;
+    left: 0;
+    bottom: 18px;
+    max-width: min(360px, 78vw);
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.82);
+    background: rgba(8, 12, 24, 0.78);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
+    font: 700 0.78rem/1.35 "Consolas", "Courier New", monospace;
+    pointer-events: auto;
+}
+
+.live2d-companion-status.ok {
+    color: #8ff6cc;
+}
+
+.live2d-companion-status.error {
+    color: #ffabc4;
+}
+
+.live2d-companion-speech {
+    position: absolute;
+    right: min(22vw, 210px);
+    bottom: min(54vh, 430px);
+    max-width: min(320px, 72vw);
+    padding: 14px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-radius: 18px 18px 8px 18px;
+    color: #ffffff;
+    background: rgba(13, 18, 34, 0.86);
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
+    font: 700 0.95rem/1.55 "Segoe UI", "Malgun Gothic", sans-serif;
+    overflow-wrap: anywhere;
+    pointer-events: auto;
+}
+
+.live2d-companion-speech::after {
+    content: "";
+    position: absolute;
+    right: 18px;
+    bottom: -8px;
+    width: 16px;
+    height: 16px;
+    border-right: 1px solid rgba(255, 255, 255, 0.24);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.24);
+    background: rgba(13, 18, 34, 0.86);
+    transform: rotate(45deg);
+}
+
+.live2d-companion.thinking {
+    animation: live2d-companion-thinking 1.2s ease-in-out infinite;
+}
+
+.live2d-companion.error .live2d-companion-speech {
+    border-color: rgba(255, 171, 196, 0.58);
+    color: #ffe5ec;
+}
+
+.hide-live2d-button {
+    position: absolute;
+    top: 18px;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 999px;
+    color: #ffffff;
+    background: rgba(10, 14, 28, 0.82);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
+    font: 800 1.35rem/1 "Segoe UI", "Malgun Gothic", sans-serif;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+#hideLive2dButton,
+#live2dCompanionStatus,
+.live2d-drag-handle {
+    pointer-events: auto;
+}
+
+.hide-live2d-button:hover {
+    background: rgba(31, 39, 70, 0.94);
+}
+
+.live2d-drag-handle {
+    position: absolute;
+    top: 18px;
+    right: 48px;
+    min-width: 56px;
+    min-height: 34px;
+    padding: 0 10px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 999px;
+    color: #ffffff;
+    background: rgba(10, 14, 28, 0.82);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
+    font: 800 0.72rem/1 "Segoe UI", "Malgun Gothic", sans-serif;
+    cursor: grab;
+    pointer-events: auto;
+    user-select: none;
+    touch-action: none;
+}
+
+.live2d-drag-handle:hover {
+    background: rgba(31, 39, 70, 0.94);
+}
+
+.live2d-companion.dragging .live2d-drag-handle {
+    cursor: grabbing;
+}
+
+@keyframes live2d-companion-thinking {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+@media (max-width: 640px) {
+    .summon-live2d-button {
+        right: 18px;
+        bottom: 112px;
+    }
+
+    .live2d-companion {
+        right: 0;
+        width: 100vw;
+        height: 82vh;
+    }
+
+    .live2d-companion-status {
+        left: 14px;
+        bottom: 14px;
+    }
+
+    .live2d-companion-speech {
+        right: 64px;
+        bottom: 56vh;
+        max-width: calc(100vw - 96px);
+        font-size: 0.88rem;
+    }
+
+    .hide-live2d-button {
+        right: 14px;
+    }
+
+    .live2d-drag-handle {
+        right: 62px;
+    }
+}

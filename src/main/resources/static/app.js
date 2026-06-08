@@ -1,6 +1,7 @@
 ﻿const chatbotToggle = document.getElementById("chatbotToggle");
 const chatbotPanel = document.getElementById("chatbotPanel");
 const closeChatbot = document.getElementById("closeChatbot");
+const chatbotHeader = document.querySelector(".chatbot-header");
 const chatForm = document.getElementById("chatForm");
 const messageInput = document.getElementById("messageInput");
 const sendButton = document.getElementById("sendButton");
@@ -8,13 +9,14 @@ const chatLog = document.getElementById("chatLog");
 const botAvatar = document.getElementById("momoPngFallback");
 const speechBubble = document.getElementById("speechBubble");
 const live2dAssetCheck = document.getElementById("live2dAssetCheck");
-const live2dRenderStatus = document.getElementById("live2dRenderStatus");
-const live2dStage = document.getElementById("live2dStage");
-const live2dCanvas = document.getElementById("live2dCanvas");
 
 const messages = [];
-let live2dReady = false;
-let live2dApp = null;
+let chatbotEventsBound = false;
+let chatFormSubmitBound = false;
+let chatbotResizeBound = false;
+let chatbotResizeState = null;
+let chatbotDragBound = false;
+let chatbotDragState = null;
 const live2dAssetPaths = [
     "/model_dict.json",
     "/live2d-models/mao_pro/runtime/mao_pro.model3.json",
@@ -25,17 +27,59 @@ const live2dAssetPaths = [
 ];
 
 function setChatbotOpen(isOpen) {
+    if (!chatbotPanel || !chatbotToggle) {
+        console.error("[CHATBOT] missing required DOM", {
+            chatbotPanel: Boolean(chatbotPanel),
+            chatbotToggle: Boolean(chatbotToggle)
+        });
+        return;
+    }
+
     chatbotPanel.classList.toggle("open", isOpen);
     chatbotPanel.setAttribute("aria-hidden", String(!isOpen));
     chatbotToggle.setAttribute("aria-expanded", String(isOpen));
     chatbotToggle.setAttribute("aria-label", isOpen ? "MOMO AI 챗봇 닫기" : "MOMO AI 챗봇 열기");
 
-    if (isOpen) {
+    if (isOpen && messageInput) {
         requestAnimationFrame(() => messageInput.focus());
     }
 }
 
+function positionChatbotForAssistantMode() {
+    if (!chatbotPanel || window.innerWidth <= 600) {
+        return;
+    }
+
+    chatbotPanel.style.position = "fixed";
+    chatbotPanel.style.left = "32px";
+    chatbotPanel.style.right = "auto";
+    chatbotPanel.style.bottom = "32px";
+    chatbotPanel.style.top = "auto";
+    chatbotPanel.style.transform = "none";
+}
+
+function openAssistantMode() {
+    console.log("[ASSISTANT_MODE] open");
+    document.body.classList.add("assistant-mode");
+    console.log("[ASSISTANT_UI] compact chat profile applied");
+    positionChatbotForAssistantMode();
+    setChatbotOpen(true);
+    window.MomoLive2DCompanion?.summon?.();
+}
+
+function closeAssistantMode() {
+    console.log("[ASSISTANT_MODE] close");
+    setChatbotOpen(false);
+    window.MomoLive2DCompanion?.hide?.();
+    document.body.classList.remove("assistant-mode");
+}
+
 function appendMessage(role, content) {
+    if (!chatLog) {
+        console.error("[CHATBOT] missing required DOM", { chatLog: false });
+        return;
+    }
+
     const message = document.createElement("div");
     message.classList.add("message", role);
     message.textContent = content;
@@ -45,18 +89,214 @@ function appendMessage(role, content) {
 }
 
 function setWaiting(isWaiting) {
-    sendButton.disabled = isWaiting;
-    sendButton.textContent = isWaiting ? "생각 중..." : "전송";
+    if (sendButton) {
+        sendButton.disabled = isWaiting;
+        sendButton.textContent = isWaiting ? "생각 중..." : "전송";
+    }
 
     if (botAvatar) {
         botAvatar.classList.toggle("thinking", isWaiting);
         botAvatar.classList.remove("talking");
     }
+}
 
-    if (live2dStage) {
-        live2dStage.classList.toggle("thinking", isWaiting && live2dReady);
-        live2dStage.classList.remove("talking");
+function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+
+function startChatbotResize(direction, event) {
+    if (!chatbotPanel || window.innerWidth <= 600) {
+        return;
     }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const rect = chatbotPanel.getBoundingClientRect();
+    chatbotResizeState = {
+        direction,
+        startX: event.clientX,
+        startY: event.clientY,
+        startLeft: rect.left,
+        startTop: rect.top,
+        startWidth: rect.width,
+        startHeight: rect.height
+    };
+
+    chatbotPanel.style.position = "fixed";
+    chatbotPanel.style.left = `${rect.left}px`;
+    chatbotPanel.style.top = `${rect.top}px`;
+    chatbotPanel.style.width = `${rect.width}px`;
+    chatbotPanel.style.height = `${rect.height}px`;
+    chatbotPanel.style.right = "auto";
+    chatbotPanel.style.bottom = "auto";
+    chatbotPanel.style.transform = "none";
+
+    document.body.classList.add("resizing-chatbot");
+    console.log("[CHATBOT_RESIZE] start", direction);
+}
+
+function resizeChatbot(direction, event) {
+    if (!chatbotPanel || !chatbotResizeState || chatbotResizeState.direction !== direction) {
+        return;
+    }
+
+    const minWidth = 320;
+    const minHeight = 420;
+    const maxWidth = window.innerWidth - 48;
+    const maxHeight = window.innerHeight - 48;
+    const deltaX = event.clientX - chatbotResizeState.startX;
+    const deltaY = event.clientY - chatbotResizeState.startY;
+    let nextLeft = chatbotResizeState.startLeft;
+    let nextTop = chatbotResizeState.startTop;
+    let nextWidth = chatbotResizeState.startWidth;
+    let nextHeight = chatbotResizeState.startHeight;
+
+    if (direction.includes("e")) {
+        nextWidth = chatbotResizeState.startWidth + deltaX;
+    }
+
+    if (direction.includes("s")) {
+        nextHeight = chatbotResizeState.startHeight + deltaY;
+    }
+
+    if (direction.includes("w")) {
+        nextWidth = chatbotResizeState.startWidth - deltaX;
+        nextLeft = chatbotResizeState.startLeft + deltaX;
+    }
+
+    if (direction.includes("n")) {
+        nextHeight = chatbotResizeState.startHeight - deltaY;
+        nextTop = chatbotResizeState.startTop + deltaY;
+    }
+
+    nextWidth = clamp(nextWidth, minWidth, maxWidth);
+    nextHeight = clamp(nextHeight, minHeight, maxHeight);
+
+    if (direction.includes("w")) {
+        nextLeft = chatbotResizeState.startLeft + (chatbotResizeState.startWidth - nextWidth);
+    }
+
+    if (direction.includes("n")) {
+        nextTop = chatbotResizeState.startTop + (chatbotResizeState.startHeight - nextHeight);
+    }
+
+    nextLeft = clamp(nextLeft, 24, Math.max(24, window.innerWidth - nextWidth - 24));
+    nextTop = clamp(nextTop, 24, Math.max(24, window.innerHeight - nextHeight - 24));
+
+    chatbotPanel.style.left = `${nextLeft}px`;
+    chatbotPanel.style.top = `${nextTop}px`;
+    chatbotPanel.style.width = `${nextWidth}px`;
+    chatbotPanel.style.height = `${nextHeight}px`;
+}
+
+function stopChatbotResize() {
+    if (!chatbotResizeState) {
+        return;
+    }
+
+    chatbotResizeState = null;
+    document.body.classList.remove("resizing-chatbot");
+    console.log("[CHATBOT_RESIZE] end");
+}
+
+function startChatbotDrag(event) {
+    if (!chatbotPanel || window.innerWidth <= 600 || event.target.closest("button")) {
+        return;
+    }
+
+    event.preventDefault();
+
+    const rect = chatbotPanel.getBoundingClientRect();
+    chatbotDragState = {
+        startX: event.clientX,
+        startY: event.clientY,
+        startLeft: rect.left,
+        startTop: rect.top,
+        width: rect.width,
+        height: rect.height
+    };
+
+    chatbotPanel.style.position = "fixed";
+    chatbotPanel.style.left = `${rect.left}px`;
+    chatbotPanel.style.top = `${rect.top}px`;
+    chatbotPanel.style.width = `${rect.width}px`;
+    chatbotPanel.style.height = `${rect.height}px`;
+    chatbotPanel.style.right = "auto";
+    chatbotPanel.style.bottom = "auto";
+    chatbotPanel.style.transform = "none";
+
+    document.body.classList.add("dragging-chatbot");
+}
+
+function dragChatbot(event) {
+    if (!chatbotPanel || !chatbotDragState) {
+        return;
+    }
+
+    const deltaX = event.clientX - chatbotDragState.startX;
+    const deltaY = event.clientY - chatbotDragState.startY;
+    const nextLeft = clamp(
+        chatbotDragState.startLeft + deltaX,
+        24,
+        Math.max(24, window.innerWidth - chatbotDragState.width - 24)
+    );
+    const nextTop = clamp(
+        chatbotDragState.startTop + deltaY,
+        24,
+        Math.max(24, window.innerHeight - chatbotDragState.height - 24)
+    );
+
+    chatbotPanel.style.left = `${nextLeft}px`;
+    chatbotPanel.style.top = `${nextTop}px`;
+}
+
+function stopChatbotDrag() {
+    if (!chatbotDragState) {
+        return;
+    }
+
+    chatbotDragState = null;
+    document.body.classList.remove("dragging-chatbot");
+}
+
+function initChatbotDraggable() {
+    if (!chatbotHeader || chatbotDragBound) {
+        return;
+    }
+
+    chatbotHeader.addEventListener("pointerdown", startChatbotDrag);
+    window.addEventListener("pointermove", dragChatbot);
+    window.addEventListener("pointerup", stopChatbotDrag);
+    window.addEventListener("pointercancel", stopChatbotDrag);
+    chatbotDragBound = true;
+}
+
+function initChatbotResizable() {
+    if (!chatbotPanel || chatbotResizeBound) {
+        return;
+    }
+
+    const resizeHandles = chatbotPanel.querySelectorAll(".resize-handle");
+    resizeHandles.forEach((handle) => {
+        const direction = handle.dataset.resizeDirection;
+        handle.addEventListener("pointerdown", (event) => {
+            startChatbotResize(direction, event);
+        });
+    });
+
+    window.addEventListener("pointermove", (event) => {
+        if (!chatbotResizeState) {
+            return;
+        }
+
+        resizeChatbot(chatbotResizeState.direction, event);
+    });
+
+    window.addEventListener("pointerup", stopChatbotResize);
+    window.addEventListener("pointercancel", stopChatbotResize);
+    chatbotResizeBound = true;
+    console.log("[CHATBOT_RESIZE] initialized");
 }
 
 async function checkLive2dAssets() {
@@ -103,110 +343,24 @@ async function checkLive2dAssets() {
     console.warn("Live2D asset check failed", failedAssets);
 }
 
-function setLive2DRenderStatus(message, statusClass) {
-    if (!live2dRenderStatus) {
+async function handleChatSubmit(event) {
+    event.preventDefault();
+
+    if (!messageInput || !chatLog || !chatForm) {
+        console.error("[CHATBOT] missing required DOM before submit", {
+            chatForm: Boolean(chatForm),
+            messageInput: Boolean(messageInput),
+            chatLog: Boolean(chatLog)
+        });
         return;
     }
-
-    live2dRenderStatus.classList.remove("ok", "error");
-
-    if (statusClass) {
-        live2dRenderStatus.classList.add(statusClass);
-    }
-
-    live2dRenderStatus.textContent = message;
-}
-
-function keepPngFallback(reason) {
-    live2dReady = false;
-
-    if (live2dStage) {
-        live2dStage.classList.remove("ready", "thinking", "talking");
-    }
-
-    if (botAvatar) {
-        botAvatar.classList.remove("hidden");
-    }
-
-    if (reason) {
-        console.error("Live2D render initialization skipped", reason);
-    }
-}
-
-async function initLive2D() {
-    const modelPath = "/live2d-models/mao_pro/runtime/mao_pro.model3.json";
-
-    try {
-        setLive2DRenderStatus("Live2D Render: loading...");
-
-        if (!live2dStage || !live2dCanvas) {
-            setLive2DRenderStatus("Live2D Render: Failed - canvas missing", "error");
-            keepPngFallback("canvas element not found");
-            return;
-        }
-
-        const pixi = window.PIXI;
-        if (!pixi) {
-            setLive2DRenderStatus("Live2D Render: Failed - PIXI missing", "error");
-            keepPngFallback("window.PIXI is not defined");
-            return;
-        }
-
-        if (!pixi.live2d || !pixi.live2d.Live2DModel) {
-            setLive2DRenderStatus("Live2D Render: Failed - Live2DModel missing", "error");
-            keepPngFallback("PIXI.live2d.Live2DModel is not defined");
-            return;
-        }
-
-        const width = live2dStage.clientWidth || 142;
-        const height = live2dStage.clientHeight || 180;
-
-        live2dApp = new pixi.Application({
-            view: live2dCanvas,
-            width,
-            height,
-            transparent: true,
-            backgroundAlpha: 0,
-            antialias: true,
-            autoStart: true
-        });
-
-        const model = await pixi.live2d.Live2DModel.from(modelPath);
-        model.scale.set(0.16);
-        model.x = Math.max((width - model.width) / 2, -40);
-        model.y = height - model.height + 16;
-
-        live2dApp.stage.addChild(model);
-        live2dReady = true;
-        live2dStage.classList.add("ready");
-
-        if (botAvatar) {
-            botAvatar.classList.add("hidden");
-        }
-
-        setLive2DRenderStatus("Live2D Render: OK", "ok");
-    } catch (error) {
-        setLive2DRenderStatus("Live2D Render: Failed", "error");
-        keepPngFallback();
-        console.error("Live2D render failed", error);
-    }
-}
-
-chatbotToggle.addEventListener("click", () => {
-    setChatbotOpen(!chatbotPanel.classList.contains("open"));
-});
-
-closeChatbot.addEventListener("click", () => {
-    setChatbotOpen(false);
-});
-
-chatForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
 
     const content = messageInput.value.trim();
     if (!content) {
         return;
     }
+
+    console.log("[CHATBOT] send", content);
 
     const userMessage = { role: "user", content };
     messages.push(userMessage);
@@ -214,6 +368,11 @@ chatForm.addEventListener("submit", async (event) => {
 
     messageInput.value = "";
     setWaiting(true);
+    window.MomoLive2DCompanion?.setThinking?.(true);
+
+    if (window.MomoLive2DCompanion?.isOpen?.()) {
+        window.MomoLive2DCompanion?.say?.("잠시만요, 확인해볼게요.");
+    }
 
     try {
         const response = await fetch("/api/chat", {
@@ -221,7 +380,7 @@ chatForm.addEventListener("submit", async (event) => {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ messages })
+            body: JSON.stringify({ messages: messages })
         });
 
         if (!response.ok) {
@@ -230,21 +389,84 @@ chatForm.addEventListener("submit", async (event) => {
 
         const data = await response.json();
         const reply = typeof data.reply === "string" ? data.reply : "응답을 읽지 못했어요.";
+        console.log("[CHATBOT] reply", reply);
 
         messages.push({ role: "assistant", content: reply });
         appendMessage("assistant", reply);
-        speechBubble.textContent = reply;
+        if (speechBubble) {
+            speechBubble.textContent = reply;
+        }
+        window.MomoLive2DCompanion?.setThinking?.(false);
+        window.MomoLive2DCompanion?.say?.(reply);
     } catch (error) {
         const errorMessage = "서버 응답을 받지 못했어요. 잠시 후 다시 시도해 주세요.";
         appendMessage("error", errorMessage);
-        speechBubble.textContent = errorMessage;
+        if (speechBubble) {
+            speechBubble.textContent = errorMessage;
+        }
+        window.MomoLive2DCompanion?.setThinking?.(false);
+        window.MomoLive2DCompanion?.setError?.("앗, 응답을 받지 못했어요. 잠시 후 다시 시도해 주세요.");
+        console.error("[CHATBOT] failed", error);
     } finally {
         setWaiting(false);
-        messageInput.focus();
+        if (messageInput) {
+            messageInput.focus();
+        }
     }
-});
+}
+
+function validateChatbotDom() {
+    const requiredElements = {
+        chatbotToggle,
+        chatbotPanel,
+        chatForm,
+        messageInput,
+        sendButton,
+        chatLog
+    };
+
+    const missingElements = Object.entries(requiredElements)
+        .filter(([, element]) => !element)
+        .map(([name]) => name);
+
+    if (missingElements.length > 0) {
+        console.error("[CHATBOT] missing required DOM", missingElements);
+        return false;
+    }
+
+    return true;
+}
+
+function initializeChatbot() {
+    validateChatbotDom();
+
+    if (!chatbotEventsBound && chatbotToggle && chatbotPanel) {
+        chatbotToggle.addEventListener("click", openAssistantMode);
+        chatbotEventsBound = true;
+    }
+
+    if (closeChatbot) {
+        closeChatbot.addEventListener("click", closeAssistantMode);
+    }
+
+    window.addEventListener("momo-live2d-hide-requested", (event) => {
+        event.preventDefault();
+        closeAssistantMode();
+    });
+
+    if (!chatFormSubmitBound && chatForm) {
+        chatForm.addEventListener("submit", handleChatSubmit);
+        chatFormSubmitBound = true;
+    }
+
+    initChatbotResizable();
+    initChatbotDraggable();
+    console.log("[CHATBOT] initialized");
+    console.log("[CHATBOT_UI] initialized");
+    console.log("[ASSISTANT_MODE] initialized");
+}
 
 document.addEventListener("DOMContentLoaded", () => {
+    initializeChatbot();
     checkLive2dAssets();
-    initLive2D();
 });

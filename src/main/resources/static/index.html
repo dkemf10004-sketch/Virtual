@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NOVA Entertainment</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="live2d-companion.css">
 </head>
 <body>
 <header class="site-header">
@@ -119,9 +120,6 @@
 
         <div class="bot-profile">
             <div class="momo-character-stage" aria-hidden="true">
-                <div class="live2d-stage" id="live2dStage">
-                    <canvas id="live2dCanvas"></canvas>
-                </div>
                 <img id="momoPngFallback" src="/assets/characters/mao.png" alt="MOMO AI" class="momo-character">
             </div>
             <p id="speechBubble" class="bot-bubble">안녕하세요! NOVA Entertainment의 AI 어시스턴트 MOMO예요. 무엇을 도와드릴까요?</p>
@@ -129,9 +127,6 @@
 
         <div id="live2dAssetCheck" class="live2d-asset-check" aria-live="polite">
             Live2D Assets: checking...
-        </div>
-        <div id="live2dRenderStatus" class="live2d-asset-check live2d-render-status" aria-live="polite">
-            Live2D Render: waiting...
         </div>
 
         <div id="chatLog" class="chat-log" aria-live="polite"></div>
@@ -141,6 +136,15 @@
             <input id="messageInput" type="text" placeholder="MOMO에게 물어보기" autocomplete="off">
             <button id="sendButton" type="submit">전송</button>
         </form>
+
+        <div class="resize-handle resize-n" data-resize-direction="n" aria-hidden="true"></div>
+        <div class="resize-handle resize-e" data-resize-direction="e" aria-hidden="true"></div>
+        <div class="resize-handle resize-s" data-resize-direction="s" aria-hidden="true"></div>
+        <div class="resize-handle resize-w" data-resize-direction="w" aria-hidden="true"></div>
+        <div class="resize-handle resize-nw" data-resize-direction="nw" aria-hidden="true"></div>
+        <div class="resize-handle resize-ne" data-resize-direction="ne" aria-hidden="true"></div>
+        <div class="resize-handle resize-sw" data-resize-direction="sw" aria-hidden="true"></div>
+        <div class="resize-handle resize-se" data-resize-direction="se" aria-hidden="true"></div>
     </div>
 
     <button id="chatbotToggle" class="chatbot-toggle chatbot-button" type="button" aria-label="MOMO AI 챗봇 열기" aria-expanded="false">
@@ -149,9 +153,29 @@
     </button>
 </section>
 
+<button id="summonLive2dButton" class="summon-live2d-button" type="button">
+    MOMO Live
+</button>
+
+<div id="live2dCompanionLayer" class="live2d-companion-layer" aria-hidden="true">
+    <div id="live2dCompanion" class="live2d-companion">
+        <canvas id="live2dCompanionCanvas"></canvas>
+        <div id="live2dCompanionStatus" class="live2d-companion-status">
+            Live2D Companion: waiting...
+        </div>
+        <button id="hideLive2dButton" class="hide-live2d-button" type="button" aria-label="MOMO Live2D 닫기">
+            ×
+        </button>
+        <button id="live2dDragHandle" class="live2d-drag-handle" type="button" aria-label="MOMO 위치 이동">
+            MOVE
+        </button>
+    </div>
+</div>
+
 <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.2/dist/browser/pixi.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js"></script>
 <script src="app.js"></script>
+<script src="live2d-companion.js"></script>
 </body>
 </html>

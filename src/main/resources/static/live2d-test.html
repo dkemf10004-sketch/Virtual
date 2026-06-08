@@ -1,0 +1,27 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live2D Test</title>
+    <link rel="stylesheet" href="live2d-test.css">
+</head>
+<body>
+<main class="test-shell">
+    <div id="live2dStatus" class="live2d-status" aria-live="polite">
+        Live2D Test: waiting...
+    </div>
+
+    <pre id="live2dDebug" class="live2d-debug" aria-live="polite">Debug: waiting...</pre>
+
+    <section id="live2dStage" class="live2d-stage" aria-label="Live2D 렌더링 테스트 영역">
+        <canvas id="live2dCanvas"></canvas>
+    </section>
+</main>
+
+<script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.2/dist/browser/pixi.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js"></script>
+<script src="live2d-test.js"></script>
+</body>
+</html>
