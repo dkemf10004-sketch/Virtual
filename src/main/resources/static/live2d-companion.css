@@ -37,10 +37,10 @@
 
 .live2d-companion {
     position: absolute;
-    right: 4vw;
+    right: 1vw;
     bottom: 0;
-    width: min(620px, 92vw);
-    height: 88vh;
+    width: min(980px, calc(100vw - 24px));
+    height: 94vh;
     overflow: visible;
     pointer-events: none;
 }
@@ -78,35 +78,57 @@
 
 .live2d-companion-speech {
     position: absolute;
-    right: min(22vw, 210px);
-    bottom: min(54vh, 430px);
-    max-width: min(320px, 72vw);
-    padding: 14px 16px;
-    border: 1px solid rgba(255, 255, 255, 0.24);
-    border-radius: 18px 18px 8px 18px;
-    color: #ffffff;
-    background: rgba(13, 18, 34, 0.86);
-    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
-    font: 700 0.95rem/1.55 "Segoe UI", "Malgun Gothic", sans-serif;
+    left: clamp(32px, 7vw, 128px);
+    top: clamp(28px, 9vh, 96px);
+    width: clamp(320px, 34vw, 460px);
+    max-width: min(460px, 72vw);
+    max-height: min(54vh, 440px);
+    padding: 22px 24px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-radius: 30px 30px 30px 14px;
+    color: #3a1830;
+    background:
+            radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.95), transparent 34%),
+            linear-gradient(145deg, rgba(255, 252, 255, 0.96), rgba(255, 221, 239, 0.95) 58%, rgba(226, 249, 255, 0.92));
+    box-shadow: 0 22px 54px rgba(64, 28, 50, 0.24), 0 8px 24px rgba(255, 111, 170, 0.24);
+    backdrop-filter: blur(10px);
+    font: 750 1.03rem/1.62 "Segoe UI", "Malgun Gothic", sans-serif;
+    overflow: visible;
     overflow-wrap: anywhere;
-    pointer-events: auto;
+    pointer-events: none;
+}
+
+.live2d-companion-speech::before {
+    content: "MOMO AI";
+    display: inline-flex;
+    margin: 0 0 10px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    color: #ffffff;
+    background: linear-gradient(135deg, #ff78b8, #ff9fd0 48%, #73dff5);
+    box-shadow: 0 6px 14px rgba(255, 105, 180, 0.24);
+    font-size: 0.72rem;
+    font-weight: 950;
+    letter-spacing: 0.08em;
 }
 
 .live2d-companion-speech::after {
     content: "";
     position: absolute;
-    right: 18px;
-    bottom: -8px;
-    width: 16px;
-    height: 16px;
-    border-right: 1px solid rgba(255, 255, 255, 0.24);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.24);
-    background: rgba(13, 18, 34, 0.86);
+    right: -8px;
+    top: 58px;
+    width: 18px;
+    height: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.72);
+    border-right: 1px solid rgba(255, 255, 255, 0.72);
+    background: linear-gradient(145deg, rgba(255, 244, 250, 0.97), rgba(255, 224, 241, 0.95));
     transform: rotate(45deg);
 }
 
-.live2d-companion.thinking {
-    animation: live2d-companion-thinking 1.2s ease-in-out infinite;
+.live2d-companion.thinking,
+.live2d-companion-layer.thinking {
+    animation: none;
+    transform: none;
 }
 
 .live2d-companion.error .live2d-companion-speech {
@@ -132,38 +154,39 @@
 
 #hideLive2dButton,
 #live2dCompanionStatus,
-.live2d-drag-handle {
-    pointer-events: auto;
-}
-
-.hide-live2d-button:hover {
-    background: rgba(31, 39, 70, 0.94);
-}
-
-.live2d-drag-handle {
+.live2d-body-drag-zone {
     position: absolute;
-    top: 18px;
-    right: 48px;
-    min-width: 56px;
-    min-height: 34px;
-    padding: 0 10px;
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    border-radius: 999px;
-    color: #ffffff;
-    background: rgba(10, 14, 28, 0.82);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
-    font: 800 0.72rem/1 "Segoe UI", "Malgun Gothic", sans-serif;
+    left: 48%;
+    top: 22%;
+    width: 28%;
+    height: 58%;
+    min-width: 140px;
+    min-height: 260px;
+    border-radius: 42% 42% 32% 32%;
     cursor: grab;
     pointer-events: auto;
     user-select: none;
     touch-action: none;
+    background: transparent;
 }
 
-.live2d-drag-handle:hover {
-    background: rgba(31, 39, 70, 0.94);
+.live2d-body-drag-zone:hover::after,
+.live2d-companion.dragging .live2d-body-drag-zone::after {
+    content: "DRAG";
+    position: absolute;
+    left: 50%;
+    top: 12px;
+    transform: translateX(-50%);
+    padding: 5px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-radius: 999px;
+    color: rgba(255, 255, 255, 0.82);
+    background: rgba(10, 14, 28, 0.58);
+    font: 850 0.68rem/1 "Segoe UI", "Malgun Gothic", sans-serif;
+    letter-spacing: 0.08em;
 }
 
-.live2d-companion.dragging .live2d-drag-handle {
+.live2d-companion.dragging .live2d-body-drag-zone {
     cursor: grabbing;
 }
 
@@ -196,17 +219,98 @@
     }
 
     .live2d-companion-speech {
-        right: 64px;
-        bottom: 56vh;
-        max-width: calc(100vw - 96px);
+        left: 14px;
+        right: auto;
+        top: clamp(14px, 5vh, 42px);
+        bottom: auto;
+        width: calc(100vw - 28px);
+        max-width: calc(100vw - 28px);
+        max-height: min(48vh, 320px);
+        padding: 16px 18px 18px;
         font-size: 0.88rem;
+    }
+
+    .live2d-companion-speech::after {
+        left: 48px;
+        right: auto;
+        top: auto;
+        bottom: -8px;
+        border-top: 0;
+        border-right: 1px solid rgba(255, 255, 255, 0.72);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.72);
+        transform: rotate(45deg);
     }
 
     .hide-live2d-button {
         right: 14px;
     }
 
-    .live2d-drag-handle {
-        right: 62px;
+
+}
+
+
+/* Product-mode cleanup: the Live2D close button and debug status are hidden.
+   Chatbot close remains the single assistant close control. */
+.hide-live2d-button,
+.live2d-companion-status {
+    display: none !important;
+    pointer-events: none !important;
+}
+
+.live2d-companion-layer.thinking .live2d-companion,
+.live2d-companion.thinking {
+    animation: none !important;
+    transform: none !important;
+}
+
+@media (max-width: 900px) {
+    .live2d-companion {
+        right: 0;
+        width: 100vw;
+        height: 90vh;
+    }
+
+    .live2d-companion-speech {
+        left: clamp(14px, 4vw, 28px);
+        top: clamp(18px, 6vh, 62px);
+        width: min(390px, calc(100vw - 32px));
+        max-width: calc(100vw - 32px);
+        max-height: min(50vh, 360px);
+        padding: 18px 20px 20px;
+        font-size: 0.92rem;
+    }
+
+    .live2d-body-drag-zone {
+        left: 46%;
+        top: 24%;
+        width: 34%;
+        height: 54%;
+        min-width: 120px;
+        min-height: 220px;
+    }
+}
+
+@media (max-width: 640px) {
+    .live2d-companion-speech {
+        left: 14px;
+        right: auto;
+        top: clamp(14px, 5vh, 42px);
+        bottom: auto;
+        width: calc(100vw - 28px);
+        max-width: calc(100vw - 28px);
+        max-height: min(48vh, 320px);
+        padding: 16px 18px 18px;
+        font-size: 0.88rem;
+    }
+
+    .live2d-companion-speech::after {
+        left: 48px;
+        right: auto;
+        top: auto;
+        bottom: -8px;
+        border-top: 0;
+        border-right: 1px solid rgba(255, 255, 255, 0.72);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.72);
+        transform: rotate(45deg);
     }
 }
