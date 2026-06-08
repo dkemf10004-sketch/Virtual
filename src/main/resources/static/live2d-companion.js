@@ -114,6 +114,62 @@
         model.__originalHeight = model.height / scaleY;
     }
 
+    function updateLive2DDragHitbox(model) {
+        if (!model || !dragHandle || !companionElement) {
+            return;
+        }
+
+        const bounds = model.getBounds?.();
+        if (!bounds || bounds.width <= 0 || bounds.height <= 0) {
+            return;
+        }
+
+        const stageWidth = companionElement.clientWidth;
+        const stageHeight = companionElement.clientHeight;
+        const canvasStyle = companionCanvas ? window.getComputedStyle(companionCanvas) : null;
+        const matrix = canvasStyle?.transform && canvasStyle.transform !== "none"
+            ? new DOMMatrixReadOnly(canvasStyle.transform)
+            : null;
+        const scaleX = Math.abs(matrix?.a || 1);
+        const scaleY = Math.abs(matrix?.d || 1);
+        const originX = stageWidth / 2;
+        const originY = stageHeight;
+        const visualLeft = originX + (bounds.x - originX) * scaleX;
+        const visualTop = originY + (bounds.y - originY) * scaleY;
+        const visualWidth = bounds.width * scaleX;
+        const visualHeight = bounds.height * scaleY;
+        const hitboxWidth = visualWidth * 0.58;
+        const hitboxHeight = visualHeight * 0.72;
+
+        dragHandle.style.left = `${visualLeft + (visualWidth - hitboxWidth) / 2}px`;
+        dragHandle.style.top = `${visualTop + (visualHeight - hitboxHeight) / 2}px`;
+        dragHandle.style.width = `${hitboxWidth}px`;
+        dragHandle.style.height = `${hitboxHeight}px`;
+        dragHandle.style.minWidth = "0";
+        dragHandle.style.minHeight = "0";
+
+        console.log("[LIVE2D_HITBOX] updated", {
+            modelBounds: {
+                x: bounds.x,
+                y: bounds.y,
+                width: bounds.width,
+                height: bounds.height
+            },
+            visualBounds: {
+                left: visualLeft,
+                top: visualTop,
+                width: visualWidth,
+                height: visualHeight
+            },
+            hitbox: {
+                left: dragHandle.style.left,
+                top: dragHandle.style.top,
+                width: dragHandle.style.width,
+                height: dragHandle.style.height
+            }
+        });
+    }
+
     function fitLive2DModelToStage(model, app, stageElement) {
         const rendererWidth = stageElement.clientWidth;
         const rendererHeight = stageElement.clientHeight;
@@ -145,6 +201,7 @@
 
         model.x = rendererWidth / 2;
         model.y = rendererHeight * 0.95;
+        updateLive2DDragHitbox(model);
 
         console.log("[LIVE2D_COMPANION] fitted", {
             rendererWidth,

@@ -1,0 +1,98 @@
+{
+  "siteName": "NOVA Entertainment",
+  "assistantName": "MOMO AI",
+  "sections": [
+    {
+      "id": "hero",
+      "name": "Create the Next Stage",
+      "description": "AI와 팬 경험이 만나는 NOVA Entertainment 메인 소개 영역입니다.",
+      "keywords": ["메인", "홈", "소개", "NOVA", "노바"]
+    },
+    {
+      "id": "artists",
+      "name": "NOVA Roster",
+      "description": "가상의 아티스트와 AI 팬 경험을 결합한 차세대 라인업을 소개합니다.",
+      "keywords": ["아티스트", "가수", "멤버", "라인업", "로스터"]
+    },
+    {
+      "id": "goods",
+      "name": "MOMO Goods Shop",
+      "description": "MOMO AI 공식 굿즈 콘셉트 쇼룸입니다. 일상 소품부터 데스크 컬렉션까지 팬과 MOMO가 만나는 상품을 소개합니다.",
+      "keywords": ["굿즈", "상품", "샵", "스토어", "모모 굿즈", "MOMO Goods"]
+    },
+    {
+      "id": "audition",
+      "name": "Audition",
+      "description": "NOVA Entertainment가 음악, 퍼포먼스, AI 콘텐츠에 도전하는 크리에이터를 모집하는 안내 영역입니다.",
+      "keywords": ["오디션", "지원", "모집", "크리에이터", "지원 문의"]
+    },
+    {
+      "id": "news",
+      "name": "NOVA Updates",
+      "description": "NOVA AI Fan Lab, Virtual Stage Beta, 글로벌 오디션 사전 등록 같은 새 소식을 안내합니다.",
+      "keywords": ["뉴스", "소식", "업데이트", "공지", "새소식"]
+    },
+    {
+      "id": "contact",
+      "name": "Contact",
+      "description": "NOVA Entertainment 연락처와 문의 정보를 확인할 수 있는 영역입니다.",
+      "keywords": ["문의", "연락", "컨택", "contact", "이메일"]
+    }
+  ],
+  "products": [
+    {
+      "id": "momo-mug",
+      "name": "MOMO Mug",
+      "category": "daily",
+      "price": "₩18,000",
+      "description": "MOMO AI 일러스트가 들어간 핑크 포인트 머그컵입니다.",
+      "keywords": ["머그컵", "컵", "음료", "mug", "모모 컵"],
+      "sectionId": "goods"
+    },
+    {
+      "id": "momo-cap",
+      "name": "MOMO Cap",
+      "category": "fashion",
+      "price": "₩29,000",
+      "description": "무대 조명 컬러를 담은 로고 자수 스타일의 캐주얼 캡입니다.",
+      "keywords": ["캡", "모자", "cap", "패션", "모모 모자"],
+      "sectionId": "goods"
+    },
+    {
+      "id": "momo-pillow",
+      "name": "MOMO Pillow",
+      "category": "home",
+      "price": "₩32,000",
+      "description": "채팅 말풍선 형태에서 영감을 받은 소프트 쿠션 굿즈입니다.",
+      "keywords": ["필로우", "베개", "쿠션", "pillow", "홈"],
+      "sectionId": "goods"
+    },
+    {
+      "id": "momo-mousepad",
+      "name": "MOMO Mouse Pad",
+      "category": "desk",
+      "price": "₩24,000",
+      "description": "데스크 위 라이브 스테이지 무드를 더하는 와이드 마우스 패드입니다.",
+      "keywords": ["마우스패드", "마우스 패드", "mouse pad", "desk", "데스크"],
+      "sectionId": "goods"
+    },
+    {
+      "id": "momo-blanket",
+      "name": "MOMO Blanket",
+      "category": "home",
+      "price": "₩49,000",
+      "description": "팬 채팅 라운지를 떠올리게 하는 포근한 그래픽 블랭킷입니다.",
+      "keywords": ["블랭킷", "담요", "blanket", "홈", "포근한"],
+      "sectionId": "goods"
+    },
+    {
+      "id": "momo-tshirt",
+      "name": "MOMO T-Shirt",
+      "category": "fashion",
+      "price": "₩39,000",
+      "description": "NOVA 라이브 타이포그래피를 전면에 배치한 베이직 티셔츠입니다.",
+      "keywords": ["티셔츠", "티", "t-shirt", "tshirt", "옷", "패션"],
+      "sectionId": "goods"
+    }
+  ]
+}

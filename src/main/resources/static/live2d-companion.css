@@ -39,7 +39,7 @@
     position: absolute;
     right: 1vw;
     bottom: 0;
-    width: min(980px, calc(100vw - 24px));
+    width: min(1120px, calc(100vw - 24px));
     height: 94vh;
     overflow: visible;
     pointer-events: none;
@@ -50,6 +50,8 @@
     display: block;
     width: 100%;
     height: 100%;
+    transform: scale(0.85);
+    transform-origin: center bottom;
     pointer-events: none;
 }
 
@@ -78,8 +80,8 @@
 
 .live2d-companion-speech {
     position: absolute;
-    left: clamp(32px, 7vw, 128px);
-    top: clamp(28px, 9vh, 96px);
+    left: clamp(-2px, 0vw, 36px);
+    top: clamp(176px, 27vh, 310px);
     width: clamp(320px, 34vw, 460px);
     max-width: min(460px, 72vw);
     max-height: min(54vh, 440px);
@@ -170,6 +172,32 @@
     background: transparent;
 }
 
+#live2dDragHandle,
+.live2d-drag-handle {
+    position: absolute;
+    left: 43%;
+    top: 21%;
+    width: 25%;
+    height: 54%;
+    min-width: 135px;
+    min-height: 270px;
+    border: 0;
+    border-radius: 44% 44% 30% 30%;
+    color: transparent;
+    background: transparent;
+    box-shadow: none;
+    cursor: grab;
+    pointer-events: auto;
+    user-select: none;
+    touch-action: none;
+    font-size: 0;
+}
+
+#live2dDragHandle:hover,
+.live2d-drag-handle:hover {
+    outline: none;
+}
+
 .live2d-body-drag-zone:hover::after,
 .live2d-companion.dragging .live2d-body-drag-zone::after {
     content: "DRAG";
@@ -187,6 +215,11 @@
 }
 
 .live2d-companion.dragging .live2d-body-drag-zone {
+    cursor: grabbing;
+}
+
+.live2d-companion.dragging #live2dDragHandle,
+.live2d-companion.dragging .live2d-drag-handle {
     cursor: grabbing;
 }
 
@@ -271,8 +304,8 @@
     }
 
     .live2d-companion-speech {
-        left: clamp(14px, 4vw, 28px);
-        top: clamp(18px, 6vh, 62px);
+        left: clamp(24px, 2vw, 40px);
+        top: clamp(132px, 22vh, 216px);
         width: min(390px, calc(100vw - 32px));
         max-width: calc(100vw - 32px);
         max-height: min(50vh, 360px);
@@ -287,6 +320,16 @@
         height: 54%;
         min-width: 120px;
         min-height: 220px;
+    }
+
+    #live2dDragHandle,
+    .live2d-drag-handle {
+        left: 45%;
+        top: 23%;
+        width: 27%;
+        height: 52%;
+        min-width: 117px;
+        min-height: 234px;
     }
 }
 
@@ -312,5 +355,15 @@
         border-right: 1px solid rgba(255, 255, 255, 0.72);
         border-bottom: 1px solid rgba(255, 255, 255, 0.72);
         transform: rotate(45deg);
+    }
+
+    #live2dDragHandle,
+    .live2d-drag-handle {
+        left: 45%;
+        top: 23%;
+        width: 27%;
+        height: 52%;
+        min-width: 108px;
+        min-height: 216px;
     }
 }

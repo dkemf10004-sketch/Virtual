@@ -17,6 +17,22 @@ let chatbotResizeBound = false;
 let chatbotResizeState = null;
 let chatbotDragBound = false;
 let chatbotDragState = null;
+let sectionNavigatorInitialized = false;
+let isSectionScrolling = false;
+let activeSectionIndex = 0;
+let sectionScrollUnlockTimer = null;
+const SECTION_IDS = ["hero", "artists", "goods", "audition", "news", "contact"];
+const sectionWheelIgnoreSelector = [
+    ".chatbot-panel",
+    ".chat-log",
+    ".chat-form",
+    "input",
+    "textarea",
+    "select",
+    "button",
+    ".live2d-companion",
+    ".live2d-companion-layer"
+].join(", ");
 const live2dAssetPaths = [
     "/model_dict.json",
     "/live2d-models/mao_pro/runtime/mao_pro.model3.json",
@@ -102,6 +118,149 @@ function setWaiting(isWaiting) {
 
 function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
+}
+
+function getPageSections() {
+    return SECTION_IDS
+        .map((sectionId) => document.getElementById(sectionId))
+        .filter(Boolean);
+}
+
+function getCurrentSectionIndex() {
+    const sections = getPageSections();
+    if (sections.length === 0) {
+        return -1;
+    }
+
+    const viewportCenter = window.innerHeight * 0.5;
+    let currentIndex = 0;
+    let closestDistance = Number.POSITIVE_INFINITY;
+
+    sections.forEach((section, index) => {
+        const rect = section.getBoundingClientRect();
+        const sectionCenter = rect.top + rect.height * 0.5;
+        const distance = Math.abs(sectionCenter - viewportCenter);
+
+        if (distance < closestDistance) {
+            closestDistance = distance;
+            currentIndex = index;
+        }
+    });
+
+    console.log("[SECTION_NAV] current", currentIndex, sections[currentIndex]?.id);
+    return currentIndex;
+}
+
+function getSectionCenterScrollTop(section) {
+    const rect = section.getBoundingClientRect();
+    const sectionTop = rect.top + window.scrollY;
+    const sectionCenter = sectionTop + rect.height * 0.5;
+    const maxScrollTop = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+
+    return clamp(sectionCenter - window.innerHeight * 0.5, 0, maxScrollTop);
+}
+
+function goToSection(index) {
+    const sections = getPageSections();
+    if (sections.length === 0) {
+        return;
+    }
+
+    const targetIndex = clamp(index, 0, sections.length - 1);
+    const target = sections[targetIndex];
+    if (!target || targetIndex === activeSectionIndex) {
+        return;
+    }
+
+    activeSectionIndex = targetIndex;
+    isSectionScrolling = true;
+    if (sectionScrollUnlockTimer) {
+        window.clearTimeout(sectionScrollUnlockTimer);
+    }
+
+    const targetScrollTop = getSectionCenterScrollTop(target);
+    window.scrollTo({
+        top: targetScrollTop,
+        behavior: "smooth"
+    });
+
+    sectionScrollUnlockTimer = window.setTimeout(() => {
+        isSectionScrolling = false;
+        sectionScrollUnlockTimer = null;
+    }, 850);
+
+    console.log("[SECTION_NAV] goTo", target.id, "centerTop", targetScrollTop);
+}
+
+function goToSectionById(sectionId) {
+    const sections = getPageSections();
+    const targetIndex = sections.findIndex((section) => section.id === sectionId);
+
+    if (targetIndex < 0) {
+        console.warn("[SECTION_NAV] target not found", sectionId);
+        return false;
+    }
+
+    goToSection(targetIndex);
+    return true;
+}
+
+function handleSectionWheel(event) {
+    if (!event) {
+        return;
+    }
+
+    if (event.target?.closest?.(sectionWheelIgnoreSelector)) {
+        return;
+    }
+
+    if (isSectionScrolling) {
+        event.preventDefault();
+        return;
+    }
+
+    if (event.deltaY <= 20 && event.deltaY >= -20) {
+        return;
+    }
+
+    const sections = getPageSections();
+    if (sections.length < 2) {
+        return;
+    }
+
+    const measuredIndex = getCurrentSectionIndex();
+    const activeSection = sections[activeSectionIndex];
+    const activeRect = activeSection?.getBoundingClientRect?.();
+    const activeSectionStillVisible = Boolean(
+        activeRect && activeRect.top < window.innerHeight * 0.72 && activeRect.bottom > window.innerHeight * 0.28
+    );
+
+    if (!isSectionScrolling && !activeSectionStillVisible && measuredIndex >= 0) {
+        activeSectionIndex = measuredIndex;
+    }
+
+    const currentIndex = activeSectionIndex;
+    const direction = event.deltaY > 0 ? 1 : -1;
+    const targetIndex = clamp(currentIndex + direction, 0, sections.length - 1);
+
+    if (targetIndex === currentIndex) {
+        return;
+    }
+
+    event.preventDefault();
+    console.log("[SECTION_NAV] wheel", direction, "from", sections[currentIndex]?.id, "to", sections[targetIndex]?.id);
+    goToSection(targetIndex);
+}
+
+function initSectionNavigator() {
+    if (sectionNavigatorInitialized) {
+        return;
+    }
+
+    activeSectionIndex = Math.max(0, getCurrentSectionIndex());
+    window.addEventListener("wheel", handleSectionWheel, { passive: false });
+    sectionNavigatorInitialized = true;
+    console.log("[SECTION_NAV] initialized");
 }
 
 function startChatbotResize(direction, event) {
@@ -343,6 +502,71 @@ async function checkLive2dAssets() {
     console.warn("Live2D asset check failed", failedAssets);
 }
 
+function detectSiteAction(message) {
+    const normalizedMessage = String(message || "").toLowerCase();
+    const actionRules = [
+        {
+            keywords: ["아티스트", "가수", "멤버", "라인업"],
+            targetId: "artists",
+            speech: "아티스트 섹션으로 안내해드릴게요."
+        },
+        {
+            keywords: ["오디션", "지원", "모집"],
+            targetId: "audition",
+            speech: "오디션 안내 섹션으로 이동할게요."
+        },
+        {
+            keywords: ["뉴스", "소식", "업데이트"],
+            targetId: "news",
+            speech: "최신 소식 섹션으로 안내해드릴게요."
+        },
+        {
+            keywords: ["문의", "연락", "컨택"],
+            targetId: "contact",
+            speech: "문의 정보가 있는 영역으로 안내해드릴게요."
+        },
+        {
+            keywords: ["굿즈", "상품", "샵", "스토어"],
+            targetId: "goods",
+            speech: "MOMO Goods Shop으로 안내해드릴게요."
+        }
+    ];
+
+    const matchedRule = actionRules.find((rule) => {
+        return rule.keywords.some((keyword) => normalizedMessage.includes(keyword));
+    });
+
+    if (!matchedRule) {
+        return null;
+    }
+
+    return {
+        type: "scroll",
+        targetId: matchedRule.targetId,
+        speech: matchedRule.speech
+    };
+}
+
+function executeSiteAction(action) {
+    if (!action) {
+        return;
+    }
+
+    const moved = goToSectionById(action.targetId);
+    const targetElement = document.getElementById(action.targetId);
+    if (!moved || !targetElement) {
+        console.warn("[SITE_ACTION] target not found", action.targetId);
+        return;
+    }
+
+    targetElement.classList.add("site-action-highlight");
+    window.setTimeout(() => {
+        targetElement.classList.remove("site-action-highlight");
+    }, 1600);
+    window.MomoLive2DCompanion?.say?.(action.speech);
+    console.log("[SITE_ACTION] executed", action);
+}
+
 async function handleChatSubmit(event) {
     event.preventDefault();
 
@@ -365,6 +589,8 @@ async function handleChatSubmit(event) {
     const userMessage = { role: "user", content };
     messages.push(userMessage);
     appendMessage("user", content);
+    const siteAction = detectSiteAction(content);
+    executeSiteAction(siteAction);
 
     messageInput.value = "";
     setWaiting(true);
@@ -468,5 +694,6 @@ function initializeChatbot() {
 
 document.addEventListener("DOMContentLoaded", () => {
     initializeChatbot();
+    initSectionNavigator();
     checkLive2dAssets();
 });

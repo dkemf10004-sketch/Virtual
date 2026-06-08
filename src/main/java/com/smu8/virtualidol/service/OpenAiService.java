@@ -2,15 +2,18 @@ package com.smu8.virtualidol.service;
 
 import com.smu8.virtualidol.dto.ChatMessage;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +25,11 @@ public class OpenAiService {
     private static final String RESPONSES_API_URL = "https://api.openai.com/v1/responses";
     private static final int MAX_RECENT_MESSAGES = 10;
     private static final int MAX_ERROR_BODY_LENGTH = 500;
+    private static final String SITE_INFO_RESOURCE_PATH = "static/data/site-info.json";
+    private static final String SITE_INFO_FALLBACK = """
+            Site information is temporarily unavailable.
+            If the user asks about site goods or sections, explain that the current demo page information could not be loaded.
+            """;
     private static final String INSTRUCTIONS = """
             You are MOMO AI, the AI virtual YouTuber assistant for the NOVA Entertainment demo homepage.
             Guide visitors about artists, auditions, news, and company information shown on the demo page.
@@ -40,6 +48,7 @@ public class OpenAiService {
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final String siteInfoContext = loadSiteInfoContext();
 
     public String ask(List<ChatMessage> messages) {
         if (messages == null || messages.isEmpty()) {
@@ -77,10 +86,35 @@ public class OpenAiService {
     private String createRequestBody(List<ChatMessage> messages) throws IOException {
         Map<String, Object> body = new HashMap<>();
         body.put("model", model);
-        body.put("instructions", INSTRUCTIONS);
+        body.put("instructions", buildInstructions());
         body.put("input", buildConversationInput(messages));
 
         return objectMapper.writeValueAsString(body);
+    }
+
+    private String buildInstructions() {
+        return INSTRUCTIONS
+                + "\n\nCurrent NOVA Entertainment site information follows.\n"
+                + "Use this site data when users ask about sections, MOMO goods, product names, or prices.\n"
+                + "Only say that products listed in this site data are available. If an item is not listed, say it is not currently registered.\n"
+                + "Use prices exactly as written in the site data. If the user asks where to find goods, say they can check the goods section.\n"
+                + "Site data JSON:\n"
+                + siteInfoContext;
+    }
+
+    private String loadSiteInfoContext() {
+        try {
+            ClassPathResource resource = new ClassPathResource(SITE_INFO_RESOURCE_PATH);
+            if (!resource.exists()) {
+                return SITE_INFO_FALLBACK;
+            }
+
+            try (InputStream inputStream = resource.getInputStream()) {
+                return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            }
+        } catch (IOException e) {
+            return SITE_INFO_FALLBACK;
+        }
     }
 
     private String buildConversationInput(List<ChatMessage> messages) {
