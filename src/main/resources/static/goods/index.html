@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOVA GOODS | AI Goods Curator Shop</title>
+    <link rel="stylesheet" href="./goods.css">
+</head>
+<body>
+<header class="goods-header">
+    <a class="goods-brand" href="/goods/index.html">NOVA GOODS</a>
+    <nav class="goods-nav" aria-label="Goods navigation">
+        <a href="#shop">Shop</a>
+        <a href="#collections">Collections</a>
+        <a href="#curator">Curator Pick</a>
+        <a href="#cart">Cart</a>
+        <a class="back-link" href="/">메인으로 돌아가기</a>
+    </nav>
+</header>
+
+<main>
+    <section class="goods-hero" id="shop">
+        <div class="hero-copy">
+            <p class="eyebrow">MOMO AI Curated Goods</p>
+            <h1>AI Goods Curator Shop</h1>
+            <p>
+                취향과 상황에 맞는 MOMO 굿즈를 큐레이션하는 독립 굿즈샵입니다.
+                지금은 상품 카드 렌더링을 확인하는 프론트 프로토타입 단계입니다.
+            </p>
+            <div class="hero-actions">
+                <a class="hero-button primary" href="#goodsGrid">Browse Goods</a>
+                <a class="hero-button secondary" href="#curator">Curator Picks</a>
+            </div>
+        </div>
+        <aside class="curator-panel" id="curator" aria-label="Curator pick preview">
+            <p class="panel-label">Curator Pick</p>
+            <strong>MOMO Daily Set</strong>
+            <span>머그, 마우스패드, 캡으로 구성하는 데스크 루틴 추천</span>
+        </aside>
+    </section>
+
+    <section class="goods-section" id="collections" aria-labelledby="goodsTitle">
+        <div class="section-heading">
+            <p class="eyebrow">Official Collection</p>
+            <h2 id="goodsTitle">MOMO Goods</h2>
+        </div>
+        <div class="tag-panel" aria-label="Goods tag filter">
+            <div>
+                <p class="panel-label">Tag Finder</p>
+                <strong id="activeTagLabel">All Goods</strong>
+            </div>
+            <div id="tagFilterPanel" class="tag-filter-panel"></div>
+        </div>
+        <div id="goodsGrid" class="goods-grid" aria-live="polite"></div>
+    </section>
+</main>
+
+<script src="./goods-data.js"></script>
+<script src="./goods.js"></script>
+</body>
+</html>
