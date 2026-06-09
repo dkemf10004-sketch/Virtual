@@ -9,10 +9,18 @@ const chatLog = document.getElementById("chatLog");
 const botAvatar = document.getElementById("momoPngFallback");
 const speechBubble = document.getElementById("speechBubble");
 const live2dAssetCheck = document.getElementById("live2dAssetCheck");
+const openAuditionFormButton = document.getElementById("openAuditionForm");
+const auditionModal = document.getElementById("auditionModal");
+const closeAuditionModalButton = document.getElementById("closeAuditionModal");
+const auditionForm = document.getElementById("auditionForm");
+const auditionFormMessage = document.getElementById("auditionFormMessage");
 
 const messages = [];
 let chatbotEventsBound = false;
 let chatFormSubmitBound = false;
+let auditionModalBound = false;
+let goodsShopActionsBound = false;
+let goodsDetailModal = null;
 let chatbotResizeBound = false;
 let chatbotResizeState = null;
 let chatbotDragBound = false;
@@ -30,6 +38,8 @@ const sectionWheelIgnoreSelector = [
     "textarea",
     "select",
     "button",
+    ".audition-modal",
+    ".goods-detail-modal",
     ".live2d-companion",
     ".live2d-companion-layer"
 ].join(", ");
@@ -40,6 +50,58 @@ const live2dAssetPaths = [
     "/live2d-models/mao_pro/runtime/mao_pro.4096/texture_00.png",
     "/live2d-models/mao_pro/runtime/motions/mtn_01.motion3.json",
     "/live2d-models/mao_pro/runtime/expressions/exp_01.exp3.json"
+];
+const STORE_CART_STORAGE_KEY = "momoStoreCart";
+const SITE_ACTIONS = [
+    {
+        id: "go-artists",
+        keywords: ["아티스트", "가수", "멤버", "라인업", "로스터"],
+        actionType: "SCROLL_SECTION",
+        targetId: "artists",
+        speech: "아티스트 섹션으로 안내해드릴게요."
+    },
+    {
+        id: "go-goods",
+        keywords: ["굿즈", "상품", "샵", "스토어"],
+        actionType: "SCROLL_SECTION",
+        targetId: "goods",
+        speech: "MOMO 굿즈샵으로 안내해드릴게요."
+    },
+    {
+        id: "go-audition",
+        keywords: ["오디션", "지원", "모집"],
+        actionType: "SCROLL_SECTION",
+        targetId: "audition",
+        speech: "오디션 안내 섹션으로 이동할게요."
+    },
+    {
+        id: "go-news",
+        keywords: ["뉴스", "소식", "업데이트"],
+        actionType: "SCROLL_SECTION",
+        targetId: "news",
+        speech: "NOVA 업데이트 소식으로 안내해드릴게요."
+    },
+    {
+        id: "go-contact",
+        keywords: ["문의", "연락", "컨택"],
+        actionType: "SCROLL_SECTION",
+        targetId: "contact",
+        speech: "문의 정보를 확인할 수 있는 위치로 안내해드릴게요."
+    },
+    {
+        id: "show-momo-mug",
+        keywords: ["컵", "머그", "머그컵", "mug"],
+        actionType: "HIGHLIGHT_PRODUCT",
+        targetId: "momo-mug",
+        speech: "MOMO Mug 상품을 보여드릴게요."
+    },
+    {
+        id: "show-momo-tshirt",
+        keywords: ["티셔츠", "셔츠", "t-shirt", "tshirt"],
+        actionType: "HIGHLIGHT_PRODUCT",
+        targetId: "momo-tshirt",
+        speech: "MOMO T-Shirt 상품을 보여드릴게요."
+    }
 ];
 
 function setChatbotOpen(isOpen) {
@@ -261,6 +323,90 @@ function initSectionNavigator() {
     window.addEventListener("wheel", handleSectionWheel, { passive: false });
     sectionNavigatorInitialized = true;
     console.log("[SECTION_NAV] initialized");
+}
+
+function openAuditionModal() {
+    if (!auditionModal) {
+        return;
+    }
+
+    auditionModal.classList.add("open");
+    auditionModal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("audition-modal-open");
+
+    if (auditionFormMessage) {
+        auditionFormMessage.textContent = "";
+        auditionFormMessage.classList.remove("visible");
+    }
+
+    requestAnimationFrame(() => {
+        auditionForm?.querySelector("input, select, textarea")?.focus();
+    });
+}
+
+function closeAuditionModal() {
+    if (!auditionModal) {
+        return;
+    }
+
+    auditionModal.classList.remove("open");
+    auditionModal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("audition-modal-open");
+}
+
+function handleAuditionSubmit(event) {
+    event.preventDefault();
+
+    if (!auditionForm) {
+        return;
+    }
+
+    if (!auditionForm.reportValidity()) {
+        return;
+    }
+
+    const formData = Object.fromEntries(new FormData(auditionForm).entries());
+    console.log("[AUDITION_FORM] submitted", formData);
+
+    auditionForm.reset();
+    if (auditionFormMessage) {
+        auditionFormMessage.textContent = "지원 문의가 접수되었습니다. 담당자가 확인 후 연락드릴게요.";
+        auditionFormMessage.classList.add("visible");
+    }
+}
+
+function initAuditionModal() {
+    if (auditionModalBound) {
+        return;
+    }
+
+    if (openAuditionFormButton) {
+        openAuditionFormButton.addEventListener("click", openAuditionModal);
+    }
+
+    if (closeAuditionModalButton) {
+        closeAuditionModalButton.addEventListener("click", closeAuditionModal);
+    }
+
+    if (auditionModal) {
+        auditionModal.addEventListener("click", (event) => {
+            if (event.target === auditionModal) {
+                closeAuditionModal();
+            }
+        });
+    }
+
+    if (auditionForm) {
+        auditionForm.addEventListener("submit", handleAuditionSubmit);
+    }
+
+    window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && auditionModal?.classList.contains("open")) {
+            closeAuditionModal();
+        }
+    });
+
+    auditionModalBound = true;
 }
 
 function startChatbotResize(direction, event) {
@@ -503,59 +649,25 @@ async function checkLive2dAssets() {
 }
 
 function detectSiteAction(message) {
-    const normalizedMessage = String(message || "").toLowerCase();
-    const actionRules = [
-        {
-            keywords: ["아티스트", "가수", "멤버", "라인업"],
-            targetId: "artists",
-            speech: "아티스트 섹션으로 안내해드릴게요."
-        },
-        {
-            keywords: ["오디션", "지원", "모집"],
-            targetId: "audition",
-            speech: "오디션 안내 섹션으로 이동할게요."
-        },
-        {
-            keywords: ["뉴스", "소식", "업데이트"],
-            targetId: "news",
-            speech: "최신 소식 섹션으로 안내해드릴게요."
-        },
-        {
-            keywords: ["문의", "연락", "컨택"],
-            targetId: "contact",
-            speech: "문의 정보가 있는 영역으로 안내해드릴게요."
-        },
-        {
-            keywords: ["굿즈", "상품", "샵", "스토어"],
-            targetId: "goods",
-            speech: "MOMO Goods Shop으로 안내해드릴게요."
-        }
-    ];
-
-    const matchedRule = actionRules.find((rule) => {
-        return rule.keywords.some((keyword) => normalizedMessage.includes(keyword));
-    });
-
-    if (!matchedRule) {
+    const normalizedMessage = String(message || "").trim().toLowerCase();
+    if (!normalizedMessage) {
         return null;
     }
 
-    return {
-        type: "scroll",
-        targetId: matchedRule.targetId,
-        speech: matchedRule.speech
-    };
-}
+    const matchedAction = SITE_ACTIONS.find((action) => {
+        return action.keywords.some((keyword) => normalizedMessage.includes(String(keyword).toLowerCase()));
+    });
 
-function executeSiteAction(action) {
-    if (!action) {
-        return;
+    if (!matchedAction) {
+        return null;
     }
 
-    const moved = goToSectionById(action.targetId);
-    const targetElement = document.getElementById(action.targetId);
-    if (!moved || !targetElement) {
-        console.warn("[SITE_ACTION] target not found", action.targetId);
+    console.log("[SITE_ACTION] detected", matchedAction);
+    return matchedAction;
+}
+
+function highlightSiteActionTarget(targetElement) {
+    if (!targetElement) {
         return;
     }
 
@@ -563,8 +675,89 @@ function executeSiteAction(action) {
     window.setTimeout(() => {
         targetElement.classList.remove("site-action-highlight");
     }, 1600);
+}
+
+function syncActiveSectionById(sectionId) {
+    const sections = getPageSections();
+    const nextIndex = sections.findIndex((section) => section.id === sectionId);
+    if (nextIndex >= 0) {
+        activeSectionIndex = nextIndex;
+    }
+}
+
+function executeScrollSectionAction(action) {
+    const targetElement = document.getElementById(action.targetId);
+    if (!targetElement) {
+        console.warn("[SITE_ACTION] target not found", action);
+        return;
+    }
+
+    targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
+    syncActiveSectionById(action.targetId);
+    highlightSiteActionTarget(targetElement);
     window.MomoLive2DCompanion?.say?.(action.speech);
-    console.log("[SITE_ACTION] executed", action);
+    console.log("[SITE_ACTION] executed", action.actionType, action.targetId);
+}
+
+function executeHighlightProductAction(action) {
+    const goodsSection = document.getElementById("goods");
+    if (goodsSection) {
+        goodsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        syncActiveSectionById("goods");
+    } else {
+        console.warn("[SITE_ACTION] target not found", { ...action, targetId: "goods" });
+    }
+
+    const productCard = document.querySelector(`[data-product-id="${action.targetId}"]`);
+    if (!productCard) {
+        console.warn("[SITE_ACTION] target not found", action);
+        window.MomoLive2DCompanion?.say?.(action.speech);
+        return;
+    }
+
+    productCard.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    highlightSiteActionTarget(productCard);
+    window.MomoLive2DCompanion?.say?.(action.speech);
+    console.log("[SITE_ACTION] executed", action.actionType, action.targetId);
+}
+
+function executeOpenModalAction(action) {
+    const fallbackTargetId = action.fallbackTargetId || "audition";
+    const fallbackElement = document.getElementById(fallbackTargetId) || document.getElementById("contact");
+
+    if (!fallbackElement) {
+        console.warn("[SITE_ACTION] target not found", action);
+        return;
+    }
+
+    fallbackElement.scrollIntoView({ behavior: "smooth", block: "start" });
+    syncActiveSectionById(fallbackElement.id);
+    highlightSiteActionTarget(fallbackElement);
+    window.MomoLive2DCompanion?.say?.(action.speech);
+    console.log("[SITE_ACTION] executed", action.actionType, action.targetId);
+}
+
+function executeSiteAction(action) {
+    if (!action) {
+        return;
+    }
+
+    if (action.actionType === "SCROLL_SECTION") {
+        executeScrollSectionAction(action);
+        return;
+    }
+
+    if (action.actionType === "HIGHLIGHT_PRODUCT") {
+        executeHighlightProductAction(action);
+        return;
+    }
+
+    if (action.actionType === "OPEN_MODAL") {
+        executeOpenModalAction(action);
+        return;
+    }
+
+    console.warn("[SITE_ACTION] target not found", action);
 }
 
 async function handleChatSubmit(event) {
@@ -692,8 +885,196 @@ function initializeChatbot() {
     console.log("[ASSISTANT_MODE] initialized");
 }
 
+function getGoodsProductData(card) {
+    if (!card) {
+        return null;
+    }
+
+    const image = card.querySelector(".goods-product-image");
+    return {
+        id: card.dataset.productId || "",
+        category: card.dataset.category || card.querySelector(".goods-category")?.textContent?.trim() || "",
+        name: card.querySelector("h3")?.textContent?.trim() || "MOMO Goods",
+        description: card.querySelector(".goods-card-body p:not(.goods-category)")?.textContent?.trim() || "",
+        price: card.querySelector(".goods-price")?.textContent?.trim() || "",
+        image: image?.getAttribute("src") || "",
+        alt: image?.getAttribute("alt") || "MOMO goods product"
+    };
+}
+
+function createGoodsDetailModal() {
+    if (goodsDetailModal) {
+        return goodsDetailModal;
+    }
+
+    const modal = document.createElement("div");
+    modal.id = "goodsDetailModal";
+    modal.className = "goods-detail-modal";
+    modal.setAttribute("aria-hidden", "true");
+
+    const panel = document.createElement("section");
+    panel.className = "goods-detail-panel";
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-labelledby", "goodsDetailTitle");
+
+    const closeButton = document.createElement("button");
+    closeButton.className = "goods-detail-close";
+    closeButton.type = "button";
+    closeButton.setAttribute("aria-label", "상품 상세 닫기");
+    closeButton.textContent = "Close";
+
+    const imageWrap = document.createElement("div");
+    imageWrap.className = "goods-detail-image";
+
+    const image = document.createElement("img");
+    image.className = "goods-detail-product-image";
+    image.alt = "";
+    imageWrap.appendChild(image);
+
+    const content = document.createElement("div");
+    content.className = "goods-detail-content";
+
+    const category = document.createElement("p");
+    category.className = "goods-detail-category";
+
+    const title = document.createElement("h2");
+    title.id = "goodsDetailTitle";
+
+    const description = document.createElement("p");
+    description.className = "goods-detail-description";
+
+    const price = document.createElement("strong");
+    price.className = "goods-detail-price";
+
+    const actions = document.createElement("div");
+    actions.className = "goods-detail-actions";
+
+    const addButton = document.createElement("button");
+    addButton.className = "goods-button";
+    addButton.type = "button";
+    addButton.textContent = "Add to Cart";
+
+    const keepBrowsingButton = document.createElement("button");
+    keepBrowsingButton.className = "goods-button secondary";
+    keepBrowsingButton.type = "button";
+    keepBrowsingButton.textContent = "Keep Browsing";
+
+    actions.append(addButton, keepBrowsingButton);
+    content.append(category, title, description, price, actions);
+    panel.append(closeButton, imageWrap, content);
+    modal.appendChild(panel);
+    document.body.appendChild(modal);
+
+    closeButton.addEventListener("click", closeGoodsDetailModal);
+    keepBrowsingButton.addEventListener("click", closeGoodsDetailModal);
+    addButton.addEventListener("click", () => {
+        const productId = modal.dataset.productId;
+        if (productId) {
+            addGoodsProductToStoreCart(productId);
+            window.location.href = "/store-test/index.html";
+        }
+    });
+    modal.addEventListener("click", (event) => {
+        if (event.target === modal) {
+            closeGoodsDetailModal();
+        }
+    });
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && modal.classList.contains("open")) {
+            closeGoodsDetailModal();
+        }
+    });
+
+    goodsDetailModal = modal;
+    return goodsDetailModal;
+}
+
+function openGoodsDetailModal(product) {
+    if (!product) {
+        return;
+    }
+
+    const modal = createGoodsDetailModal();
+    modal.dataset.productId = product.id;
+    modal.querySelector(".goods-detail-product-image").src = product.image;
+    modal.querySelector(".goods-detail-product-image").alt = product.alt;
+    modal.querySelector(".goods-detail-category").textContent = product.category;
+    modal.querySelector("#goodsDetailTitle").textContent = product.name;
+    modal.querySelector(".goods-detail-description").textContent = product.description;
+    modal.querySelector(".goods-detail-price").textContent = product.price;
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("goods-detail-open");
+}
+
+function closeGoodsDetailModal() {
+    if (!goodsDetailModal) {
+        return;
+    }
+
+    goodsDetailModal.classList.remove("open");
+    goodsDetailModal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("goods-detail-open");
+}
+
+function addGoodsProductToStoreCart(productId) {
+    if (!productId) {
+        return;
+    }
+
+    let cart = {};
+    try {
+        cart = JSON.parse(localStorage.getItem(STORE_CART_STORAGE_KEY) || "{}") || {};
+    } catch (error) {
+        console.warn("[GOODS_SHOP] cart read failed", error);
+        cart = {};
+    }
+
+    cart[productId] = (Number(cart[productId]) || 0) + 1;
+    localStorage.setItem(STORE_CART_STORAGE_KEY, JSON.stringify(cart));
+    console.log("[GOODS_SHOP] add to cart", productId);
+}
+
+function initGoodsShopActions() {
+    if (goodsShopActionsBound) {
+        return;
+    }
+
+    const goodsSection = document.getElementById("goods");
+    if (!goodsSection) {
+        return;
+    }
+
+    goodsSection.addEventListener("click", (event) => {
+        const button = event.target.closest(".goods-button");
+        const card = event.target.closest(".goods-card");
+        if (!button || !card) {
+            return;
+        }
+
+        const product = getGoodsProductData(card);
+        if (!product) {
+            return;
+        }
+
+        if (button.classList.contains("secondary")) {
+            openGoodsDetailModal(product);
+            return;
+        }
+
+        addGoodsProductToStoreCart(product.id);
+        window.location.href = "/store-test/index.html";
+    });
+
+    goodsShopActionsBound = true;
+    console.log("[GOODS_SHOP] actions initialized");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     initializeChatbot();
     initSectionNavigator();
+    initAuditionModal();
+    initGoodsShopActions();
     checkLive2dAssets();
 });

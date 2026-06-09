@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOMO Store Test</title>
+    <link rel="stylesheet" href="./store.css">
+</head>
+<body>
+<header class="store-header">
+    <div>
+        <p class="store-eyebrow">Prototype Commerce Flow</p>
+        <h1>MOMO Store Test</h1>
+    </div>
+    <a class="main-link" href="/">NOVA Main</a>
+</header>
+
+<main class="store-layout">
+    <section class="products-panel" aria-labelledby="productsTitle">
+        <div class="section-title">
+            <p class="store-eyebrow">Goods</p>
+            <h2 id="productsTitle">상품 목록</h2>
+        </div>
+        <div id="productList" class="product-grid"></div>
+    </section>
+
+    <aside class="commerce-panel">
+        <section class="cart-section" aria-labelledby="cartTitle">
+            <div class="section-title compact split-title">
+                <div>
+                    <p class="store-eyebrow">Cart</p>
+                    <h2 id="cartTitle">장바구니</h2>
+                </div>
+                <button id="clearCartButton" class="ghost-button" type="button">전체 비우기</button>
+            </div>
+            <div id="cartItems" class="cart-items"></div>
+            <div class="cart-summary">
+                <span>총 상품 수량</span>
+                <strong id="cartItemCount">0개</strong>
+            </div>
+            <div class="cart-summary total">
+                <span>총 결제 금액</span>
+                <strong id="cartTotal">₩0</strong>
+            </div>
+        </section>
+
+        <section class="checkout-section" aria-labelledby="checkoutTitle">
+            <div class="section-title compact">
+                <p class="store-eyebrow">Checkout</p>
+                <h2 id="checkoutTitle">체크아웃</h2>
+            </div>
+            <label for="buyerName">주문자명</label>
+            <input id="buyerName" type="text" placeholder="홍길동" autocomplete="name">
+            <label for="buyerEmail">이메일</label>
+            <input id="buyerEmail" type="email" placeholder="momo@example.com" autocomplete="email">
+
+            <fieldset class="payment-methods">
+                <legend>결제 방법</legend>
+                <label>
+                    <input type="radio" name="paymentMethod" value="KakaoPay Test" checked>
+                    <span>KakaoPay Test</span>
+                </label>
+                <label>
+                    <input type="radio" name="paymentMethod" value="Card Test">
+                    <span>Card Test</span>
+                </label>
+                <label>
+                    <input type="radio" name="paymentMethod" value="Bank Transfer Mock">
+                    <span>Bank Transfer Mock</span>
+                </label>
+            </fieldset>
+
+            <button id="checkoutButton" class="checkout-button" type="button">카카오페이 테스트 결제 예정</button>
+            <p id="checkoutMessage" class="form-message" aria-live="polite"></p>
+            <p class="payment-note">실제 결제, 메일, DB 저장은 아직 연결하지 않은 더미 프로토타입입니다.</p>
+        </section>
+
+        <section id="orderComplete" class="complete-section" aria-live="polite">
+            <div class="section-title compact">
+                <p class="store-eyebrow">Complete</p>
+                <h2>주문 완료</h2>
+            </div>
+            <div id="completeMessage" class="complete-message">아직 완료된 주문이 없습니다.</div>
+        </section>
+
+        <section class="orders-section" aria-labelledby="ordersTitle">
+            <div class="section-title compact">
+                <p class="store-eyebrow">History</p>
+                <h2 id="ordersTitle">주문내역</h2>
+            </div>
+            <div id="orderHistory" class="order-history"></div>
+        </section>
+    </aside>
+</main>
+
+<script src="./store-data.js"></script>
+<script src="./store.js"></script>
+</body>
+</html>
