@@ -1,48 +1,48 @@
 # VirtualIdol
 
-AI virtual idol agency demo built with Spring Boot, OpenAI API integration, Live2D companion UI, and a mock goods store/order flow.
+Spring Boot 기반의 AI 버추얼 아이돌 엔터테인먼트 데모 프로젝트입니다. 가상의 엔터테인먼트 회사 **NOVA Entertainment**와 AI 버추얼 유튜버 어시스턴트 **MOMO AI**를 중심으로, 소개 페이지, AI 채팅, Live2D Companion, 굿즈 스토어, 주문/결제 모의 흐름을 하나의 웹 애플리케이션으로 구성했습니다.
 
-## Overview
+## 프로젝트 소개
 
-VirtualIdol is a portfolio-style web application for a fictional entertainment company named **NOVA Entertainment**. The site presents a virtual idol/AI assistant experience centered around **MOMO AI**.
+VirtualIdol은 단순한 정적 소개 페이지가 아니라, 사용자가 페이지를 탐색하고 AI에게 질문하며 굿즈를 확인하고 주문 흐름까지 체험할 수 있도록 만든 포트폴리오형 웹 프로젝트입니다.
 
-The project combines a static frontend served by Spring Boot with backend REST APIs for AI chat and mock store orders. Visitors can explore the agency page, chat with MOMO AI, view a Live2D-style companion, browse MOMO goods, add products to a cart, and test a mock order/payment flow.
+백엔드는 Spring Boot로 구성되어 정적 프론트엔드 파일을 제공하고, AI 채팅 API와 굿즈 주문 API를 처리합니다. 프론트엔드는 HTML, CSS, Vanilla JavaScript로 작성되어 별도 빌드 도구 없이 Spring Boot의 `static` 리소스 경로에서 바로 제공됩니다.
 
-## Main Features
+## 주요 기능
 
-- NOVA Entertainment landing page with hero, artist, goods, audition, news, and contact sections
-- MOMO AI chat panel powered by OpenAI Responses API
-- Site-aware AI responses using `src/main/resources/static/data/site-info.json`
-- Live2D companion widget using Cubism/PixiJS-related frontend assets
-- MOMO goods catalog with product cards, detail modal, and cart entry points
-- Separate goods page under `/goods/`
-- Store test page under `/store-test/`
-- Mock backend order API with in-memory order storage
-- Mock payment approval endpoint for portfolio/demo testing
-- Environment-variable based API key configuration
+- NOVA Entertainment 메인 랜딩 페이지
+- 히어로, 아티스트, 굿즈, 오디션, 뉴스, 문의 섹션 구성
+- OpenAI Responses API를 활용한 MOMO AI 채팅
+- 현재 사이트 정보 기반의 AI 답변 보강
+- Live2D Companion 캐릭터 UI
+- MOMO 굿즈 목록, 상세 모달, 장바구니 진입 기능
+- 별도 굿즈 페이지
+- 장바구니, 주문 생성, 모의 결제 승인 테스트 페이지
+- Spring Boot 기반 REST API
+- 환경변수 기반 API 키 설정
 
-## Tech Stack
+## 기술 스택
 
-### Backend
+### 백엔드
 
 - Java 21
 - Spring Boot 4.0.6
 - Spring Web MVC
 - Maven Wrapper
 - Java `HttpClient`
-- Jackson JSON handling
-- In-memory store order storage with `ConcurrentHashMap`
+- Jackson 기반 JSON 처리
+- `ConcurrentHashMap` 기반 인메모리 주문 저장소
 
-### Frontend
+### 프론트엔드
 
 - HTML
 - CSS
 - Vanilla JavaScript
-- Static resources served from `src/main/resources/static`
-- Browser `localStorage` for cart/order demo state
-- Live2D model assets in `src/main/resources/static/live2d-models`
+- Spring Boot 정적 리소스 서빙
+- 브라우저 `localStorage` 기반 장바구니/주문 테스트 데이터
+- Live2D 모델 리소스
 
-## Project Structure
+## 프로젝트 구조
 
 ```text
 .
@@ -77,17 +77,18 @@ The project combines a static frontend served by Spring Boot with backend REST A
 └── README.md
 ```
 
-## Requirements
+## 실행 요구사항
 
-- JDK 21 or newer
-- Internet connection when using MOMO AI chat
-- OpenAI API key for AI chat responses
+- JDK 21 이상
+- Maven Wrapper 사용 가능 환경
+- AI 채팅 기능 사용 시 OpenAI API 키
+- AI 응답 호출 시 인터넷 연결
 
-The main page and store demo can be opened without an OpenAI API key. The chat endpoint returns a friendly configuration message when `OPENAI_API_KEY` is not set.
+OpenAI API 키가 없어도 메인 페이지, 굿즈 페이지, 스토어 테스트 페이지는 확인할 수 있습니다. 다만 AI 채팅 API는 `OPENAI_API_KEY`가 설정되어 있지 않으면 키가 없다는 안내 메시지를 반환합니다.
 
-## Configuration
+## 환경변수 설정
 
-Application settings are defined in `src/main/resources/application.yml`.
+설정 파일은 `src/main/resources/application.yml`입니다.
 
 ```yaml
 server:
@@ -98,89 +99,87 @@ openai:
   model: ${OPENAI_MODEL:gpt-5.5}
 ```
 
-Set environment variables before running the app:
+실제 API 키는 코드에 직접 작성하지 말고 환경변수로 주입해야 합니다.
 
-### PowerShell
+### Windows PowerShell
 
 ```powershell
-$env:OPENAI_API_KEY="your_api_key_here"
-$env:OPENAI_MODEL="your_model_name_here"
+$env:OPENAI_API_KEY="본인의_API_키"
+$env:OPENAI_MODEL="사용할_모델명"
 .\mvnw.cmd spring-boot:run
 ```
 
 ### macOS/Linux
 
 ```bash
-export OPENAI_API_KEY="your_api_key_here"
-export OPENAI_MODEL="your_model_name_here"
+export OPENAI_API_KEY="본인의_API_키"
+export OPENAI_MODEL="사용할_모델명"
 ./mvnw spring-boot:run
 ```
 
-Do not commit real API keys. This repository ignores `.env`, `.env.*`, `*.pem`, and `*.key` files.
+## 로컬 실행 방법
 
-## Running Locally
-
-From the project root:
+프로젝트 루트에서 다음 명령어를 실행합니다.
 
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-Then open:
+실행 후 브라우저에서 아래 주소로 접속합니다.
 
-- Main page: `http://localhost:8080/`
-- Goods page: `http://localhost:8080/goods/`
-- Store test page: `http://localhost:8080/store-test/`
-- Live2D test page: `http://localhost:8080/live2d-test.html`
+- 메인 페이지: `http://localhost:8080/`
+- 굿즈 페이지: `http://localhost:8080/goods/`
+- 스토어 테스트 페이지: `http://localhost:8080/store-test/`
+- Live2D 테스트 페이지: `http://localhost:8080/live2d-test.html`
 
-## Build and Test
+## 테스트와 빌드
 
-Run tests:
+테스트 실행:
 
 ```powershell
 .\mvnw.cmd test
 ```
 
-Build the application:
+패키징:
 
 ```powershell
 .\mvnw.cmd package
 ```
 
-Run the packaged jar:
+패키징된 JAR 실행:
 
 ```powershell
 java -jar target/VirtualIdol-0.0.1-SNAPSHOT.jar
 ```
 
-## Main Pages
+## 주요 화면
 
 ### `/`
 
-The main NOVA Entertainment demo page. It includes the landing sections, MOMO goods preview, chat UI, audition/contact modals, and Live2D companion entry points.
+NOVA Entertainment 메인 페이지입니다. 회사 소개, 아티스트 소개, MOMO 굿즈 미리보기, 오디션 안내, 뉴스, 문의 영역, AI 채팅 UI, Live2D Companion 기능이 포함되어 있습니다.
 
 ### `/goods/`
 
-A dedicated goods catalog page for MOMO products.
+MOMO 굿즈를 더 집중적으로 보여주는 별도 굿즈 페이지입니다.
 
 ### `/store-test/`
 
-A mock store flow used to test cart, order creation, and payment approval behavior.
+장바구니, 주문 생성, 모의 결제 승인을 테스트하기 위한 페이지입니다. 실제 결제 연동이 아니라 포트폴리오용 모의 흐름입니다.
 
 ### `/live2d-test.html`
 
-A separate Live2D loading and interaction test page.
+Live2D 모델 로딩과 표시 상태를 따로 확인하기 위한 테스트 페이지입니다.
 
 ## REST API
 
-### AI Chat
+### AI 채팅
 
 ```http
 POST /api/chat
 Content-Type: application/json
 ```
 
-Request:
+요청 예시:
 
 ```json
 {
@@ -193,7 +192,7 @@ Request:
 }
 ```
 
-Response:
+응답 예시:
 
 ```json
 {
@@ -201,16 +200,16 @@ Response:
 }
 ```
 
-The backend sends recent conversation messages to the OpenAI Responses API. It also includes current site information from `static/data/site-info.json` so MOMO AI can answer questions about the demo page and goods list.
+서버는 최근 대화 메시지를 OpenAI Responses API로 전달합니다. 또한 `static/data/site-info.json`의 사이트 정보를 함께 지시문에 포함하여, MOMO AI가 현재 데모 페이지와 굿즈 정보에 맞춰 답변할 수 있도록 구성했습니다.
 
-### Create Store Order
+### 주문 생성
 
 ```http
 POST /api/store/orders
 Content-Type: application/json
 ```
 
-Request:
+요청 예시:
 
 ```json
 {
@@ -226,14 +225,14 @@ Request:
 }
 ```
 
-### Approve Mock Payment
+### 모의 결제 승인
 
 ```http
 POST /api/store/payments/mock/approve
 Content-Type: application/json
 ```
 
-Request:
+요청 예시:
 
 ```json
 {
@@ -241,23 +240,23 @@ Request:
 }
 ```
 
-### Get Orders
+### 주문 목록 조회
 
 ```http
 GET /api/store/orders
 ```
 
-### Get One Order
+### 단일 주문 조회
 
 ```http
 GET /api/store/orders/{orderId}
 ```
 
-## Store Catalog
+## 굿즈 상품 목록
 
-The backend currently supports the following product IDs:
+현재 백엔드에서 지원하는 상품 ID는 다음과 같습니다.
 
-| Product ID | Name | Price |
+| 상품 ID | 상품명 | 가격 |
 | --- | --- | ---: |
 | `momo-mug` | MOMO Mug | 18000 |
 | `momo-cap` | MOMO Cap | 29000 |
@@ -266,34 +265,59 @@ The backend currently supports the following product IDs:
 | `momo-blanket` | MOMO Blanket | 49000 |
 | `momo-tshirt` | MOMO T-Shirt | 39000 |
 
-Shipping fee is currently fixed at `3000`.
+배송비는 현재 `3000`으로 고정되어 있습니다.
 
-## Important Implementation Notes
+## 주요 구현 파일
 
-- Orders are stored in memory. Restarting the server clears order data.
-- Payment is a mock approval flow, not a real payment gateway integration.
-- The frontend cart uses browser `localStorage`.
-- Some static JSON/JavaScript content may need UTF-8 text cleanup before production use.
-- The default OpenAI model value is read from `OPENAI_MODEL`; verify the model name before deployment.
-- This is a demo/portfolio project, not a production commerce system.
+- `src/main/java/com/smu8/virtualidol/VirtualIdolApplication.java`: Spring Boot 애플리케이션 진입점
+- `src/main/java/com/smu8/virtualidol/controller/ChatController.java`: AI 채팅 API 컨트롤러
+- `src/main/java/com/smu8/virtualidol/service/OpenAiService.java`: OpenAI API 호출과 응답 추출 처리
+- `src/main/java/com/smu8/virtualidol/store/controller/StoreOrderController.java`: 스토어 주문 API 컨트롤러
+- `src/main/java/com/smu8/virtualidol/store/service/StoreOrderService.java`: 상품 카탈로그, 주문 생성, 모의 결제 승인 로직
+- `src/main/resources/static/index.html`: 메인 페이지
+- `src/main/resources/static/app.js`: 메인 페이지 상호작용, 채팅, 모달, 굿즈 연동 로직
+- `src/main/resources/static/live2d-companion.js`: Live2D Companion 초기화와 상태 제어
+- `src/main/resources/static/goods/`: 굿즈 페이지
+- `src/main/resources/static/store-test/`: 장바구니와 주문/결제 테스트 페이지
+- `src/main/resources/static/assets/`: 이미지와 영상 리소스
+- `src/main/resources/static/live2d-models/`: Live2D 모델, 모션, 표정, 텍스처 리소스
 
-## Security Notes
+## 구현상 특징
 
-- Real API keys must be supplied through environment variables.
-- Do not hard-code secrets in `application.yml`, Java files, JavaScript files, or documentation.
-- `.env`, `.env.*`, `*.pem`, and `*.key` are ignored by Git.
-- If a real key is ever committed, rotate the key immediately and remove it from Git history before making the repository public.
+- 채팅 요청은 최근 메시지 일부만 OpenAI API에 전달하여 요청 크기를 제한합니다.
+- AI 지시문에는 사이트 정보 JSON을 포함하여 데모 페이지 기준의 답변을 유도합니다.
+- API 키가 없거나 API 호출에 실패할 경우 사용자에게 안내 메시지를 반환합니다.
+- 주문 데이터는 데이터베이스가 아니라 서버 메모리에 저장됩니다.
+- 결제는 실제 결제가 아닌 모의 승인 방식으로 처리됩니다.
+- 프론트엔드 장바구니 상태는 브라우저 `localStorage`에 저장됩니다.
 
-## Documentation
+## 현재 한계
 
-Additional portfolio documentation is stored in `docs/`.
+- 주문 데이터가 인메모리 방식이라 서버를 재시작하면 사라집니다.
+- 실제 결제 API와 연결되어 있지 않습니다.
+- 일부 정적 데이터 파일에는 한글 인코딩이 깨진 흔적이 있어 UTF-8 기준으로 정리할 필요가 있습니다.
+- `OPENAI_MODEL` 기본값은 설정 파일에 정의되어 있으므로 실제 운영 전 사용할 수 있는 모델명인지 확인해야 합니다.
+- 오디션/문의 기능은 실제 서버 저장이나 메일 발송 없이 프론트엔드 중심의 데모 흐름입니다.
+- 프로덕션 서비스가 아니라 포트폴리오와 기능 시연을 위한 데모 프로젝트입니다.
+
+## 보안 주의사항
+
+- 실제 API 키는 반드시 환경변수로 설정해야 합니다.
+- `application.yml`, Java 코드, JavaScript 코드, README, 문서 파일에 실제 키를 직접 작성하지 마세요.
+- `.env`, `.env.*`, `*.pem`, `*.key` 파일은 Git 추적에서 제외되어 있습니다.
+- 실수로 실제 키를 커밋했다면 즉시 해당 키를 폐기하고 새 키를 발급해야 합니다.
+- 저장소를 Public으로 전환하기 전에는 GitHub Secret scanning 경고와 커밋 히스토리를 다시 확인하는 것이 좋습니다.
+
+## 문서
+
+추가 포트폴리오 문서는 `docs/` 폴더에 있습니다.
 
 - `docs/VirtualIdol_Portfolio_Documentation.md`
 - `docs/VirtualIdol_Portfolio_Documentation.docx`
 - `docs/NOVA_MOMO_Portfolio_Development_Record.docx`
 
-The script `scripts/create-portfolio-docx.ps1` is used to generate Word documentation from project notes.
+`scripts/create-portfolio-docx.ps1` 스크립트는 포트폴리오 문서를 Word 파일로 생성하기 위한 보조 스크립트입니다.
 
-## License
+## 라이선스
 
-No license file is currently included. Add a license before using this project for public distribution or reuse.
+현재 별도 라이선스 파일은 포함되어 있지 않습니다. 저장소를 공개하거나 외부에서 재사용할 수 있게 하려면 목적에 맞는 라이선스를 추가하는 것이 좋습니다.
